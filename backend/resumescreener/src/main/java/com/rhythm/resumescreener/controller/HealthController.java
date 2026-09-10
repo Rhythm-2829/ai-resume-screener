@@ -7,7 +7,7 @@ import java.util.Map;
 
 @RestController 
 public class HealthController {
-    @GetMapping("/health")
+    @GetMapping("/api/health")
     public ResponseEntity<Map<String, String>> healthCheck(){
         return ResponseEntity.ok(Map.of("status", "UP"));
     }
