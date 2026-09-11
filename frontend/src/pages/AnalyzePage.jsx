@@ -13,6 +13,8 @@ import {
   RefreshCw,
   Lightbulb,
   FileSearch,
+  Gauge,
+  ShieldAlert,
 } from 'lucide-react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
@@ -22,6 +24,7 @@ export default function AnalyzePage() {
   const [resumes, setResumes] = useState([]);
   const [resumeId, setResumeId] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [quota, setQuota] = useState({ used: 0, limit: 5, remaining: 5 });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -48,6 +51,12 @@ export default function AnalyzePage() {
     'Generating impact-driven bullet point rewrites...',
   ];
 
+  const fetchQuota = () => {
+    api.get('/api/analysis/quota')
+      .then((res) => setQuota(res.data))
+      .catch((err) => console.error('Failed to load quota', err));
+  };
+
   useEffect(() => {
     api.get('/api/resumes').then((res) => {
       setResumes(res.data);
@@ -57,6 +66,7 @@ export default function AnalyzePage() {
         setResumeId(res.data[0].id);
       }
     });
+    fetchQuota();
   }, [location.state]);
 
   // Loading animation step rotator
@@ -73,6 +83,10 @@ export default function AnalyzePage() {
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
+    if (quota.remaining <= 0) {
+      setError('Daily quota reached (5/5). Your limit resets at midnight!');
+      return;
+    }
     if (!resumeId) {
       setError('Please select a resume to analyze.');
       return;
@@ -96,6 +110,7 @@ export default function AnalyzePage() {
         jobDescription: jobDescription.trim(),
       });
       setResult(res.data);
+      fetchQuota();
     } catch (err) {
       setError(err.response?.data?.error || 'AI analysis encountered an error. Please try again.');
     } finally {
@@ -132,6 +147,51 @@ export default function AnalyzePage() {
 
         {/* Input Form Card */}
         <div style={styles.card}>
+          {/* Daily Quota Progress Widget */}
+          <div style={styles.quotaBox}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <Gauge size={16} color={quota.remaining === 0 ? '#ef4444' : '#4f46e5'} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>
+                  Daily Screening Quota
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  color: quota.remaining === 0 ? '#ef4444' : '#4f46e5',
+                  background: quota.remaining === 0 ? '#fef2f2' : '#eef2ff',
+                  padding: '0.15rem 0.55rem',
+                  borderRadius: '6px',
+                }}
+              >
+                {quota.remaining} of {quota.limit} remaining today
+              </span>
+            </div>
+
+            {/* Progress Bar Track */}
+            <div style={styles.progressBarTrack}>
+              <div
+                style={{
+                  ...styles.progressBarFill,
+                  width: `${Math.min(100, (quota.used / quota.limit) * 100)}%`,
+                  background:
+                    quota.remaining === 0
+                      ? '#ef4444'
+                      : 'linear-gradient(90deg, #4f46e5 0%, #6366f1 100%)',
+                }}
+              />
+            </div>
+          </div>
+
+          {quota.remaining === 0 && (
+            <div style={{ ...styles.errorBanner, background: '#fef2f2', borderColor: '#fecaca', color: '#991b1b', marginBottom: '1.25rem' }}>
+              <ShieldAlert size={18} color="#ef4444" style={{ flexShrink: 0 }} />
+              <span>You have reached your limit of {quota.limit} analyses for today. Your quota resets at midnight!</span>
+            </div>
+          )}
+
           <form onSubmit={handleAnalyze}>
             {/* Resume Selection */}
             <div style={{ marginBottom: '1.25rem' }}>
@@ -221,11 +281,11 @@ export default function AnalyzePage() {
             <button
               style={{
                 ...styles.analyzeBtn,
-                opacity: loading || resumes.length === 0 ? 0.7 : 1,
-                cursor: loading || resumes.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: loading || resumes.length === 0 || quota.remaining === 0 ? 0.6 : 1,
+                cursor: loading || resumes.length === 0 || quota.remaining === 0 ? 'not-allowed' : 'pointer',
               }}
               type="submit"
-              disabled={loading || resumes.length === 0}
+              disabled={loading || resumes.length === 0 || quota.remaining === 0}
             >
               {loading ? (
                 <>
@@ -420,6 +480,25 @@ const styles = {
     padding: '1.75rem',
     border: '1px solid #e2e8f0',
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03)',
+  },
+  quotaBox: {
+    background: '#f8fafc',
+    borderRadius: '12px',
+    padding: '0.85rem 1.15rem',
+    border: '1px solid #e2e8f0',
+    marginBottom: '1.25rem',
+  },
+  progressBarTrack: {
+    width: '100%',
+    height: '6px',
+    background: '#e2e8f0',
+    borderRadius: '9999px',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: '9999px',
+    transition: 'width 0.4s ease, background 0.3s ease',
   },
   label: {
     display: 'flex',

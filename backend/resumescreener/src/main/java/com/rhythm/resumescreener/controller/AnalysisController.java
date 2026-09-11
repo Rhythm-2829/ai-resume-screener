@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rhythm.resumescreener.service.AnalysisService;
 import com.rhythm.resumescreener.repository.UserRepository;
 import com.rhythm.resumescreener.dto.AnalysisRequest;
+import com.rhythm.resumescreener.dto.QuotaResponse;
 import com.rhythm.resumescreener.model.Analysis;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +38,14 @@ public class AnalysisController {
             );
             return ResponseEntity.ok(result);
     }
+    @GetMapping("/quota")
+    public ResponseEntity<QuotaResponse> getQuota(@AuthenticationPrincipal String email){
+        Long userId = userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("User Not found")).getId();
+        return ResponseEntity.ok(analysisService.getUserQuota(userId));
+        
+    }
+
     @GetMapping("/history")
     public ResponseEntity<List<Analysis>> history(@AuthenticationPrincipal String email){
         Long userId = userRepository.findByEmail(email)
