@@ -1,0 +1,2 @@
+[variables]
+JAVA_TOOL_OPTIONS = "-Xmx256m -Xms128m -XX:+UseG1GC -XX:MaxMetaspaceSize=128m"
