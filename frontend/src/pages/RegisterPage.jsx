@@ -14,7 +14,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
     if (form.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Password must be at least 6 characters long.');
       return;
     }
     setLoading(true);
@@ -31,21 +31,21 @@ export default function RegisterPage() {
 
   return (
     <div style={styles.pageWrapper}>
-      <div style={styles.cardContainer}>
-        {/* Header Branding */}
+      <div className="glass-panel" style={styles.cardContainer}>
+        {/* Header */}
         <div style={styles.brandHeader}>
           <div style={styles.brandIcon}>
             <Sparkles size={24} color="#ffffff" />
           </div>
           <h1 style={styles.title}>Create Account</h1>
-          <p style={styles.subtitle}>Start scoring resumes against real job descriptions</p>
+          <p style={styles.subtitle}>Unlock AI-powered resume screening & bullet optimization</p>
         </div>
 
-        {/* Error Notification */}
+        {/* Error Banner */}
         {error && (
           <div style={styles.errorBanner}>
-            <AlertCircle size={18} color="#ef4444" style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: '0.9rem', color: '#991b1b' }}>{error}</span>
+            <AlertCircle size={18} color="#f43f5e" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '0.88rem', color: '#fca5a5' }}>{error}</span>
           </div>
         )}
 
@@ -54,11 +54,11 @@ export default function RegisterPage() {
           <div>
             <label style={styles.label}>Email Address</label>
             <div style={styles.inputWrapper}>
-              <Mail size={18} color="#94a3b8" style={styles.fieldIcon} />
+              <Mail size={18} color="#64748b" style={styles.fieldIcon} />
               <input
                 style={styles.input}
                 type="email"
-                placeholder="you@company.com"
+                placeholder="developer@company.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
@@ -69,7 +69,7 @@ export default function RegisterPage() {
           <div>
             <label style={styles.label}>Password</label>
             <div style={styles.inputWrapper}>
-              <Lock size={18} color="#94a3b8" style={styles.fieldIcon} />
+              <Lock size={18} color="#64748b" style={styles.fieldIcon} />
               <input
                 style={styles.input}
                 type={showPassword ? 'text' : 'password'}
@@ -105,7 +105,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <div style={styles.footer}>
-          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Already registered?</span>{' '}
+          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Already registered?</span>{' '}
           <Link to="/login" style={styles.footerLink}>
             Sign in here
           </Link>
@@ -121,63 +121,59 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'radial-gradient(circle at 50% 0%, #ede9fe 0%, #f8fafc 60%)',
     padding: '1.5rem',
   },
   cardContainer: {
-    background: '#ffffff',
     padding: '2.5rem',
-    borderRadius: '16px',
-    boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px #e2e8f0',
     width: '100%',
-    maxWidth: '420px',
+    maxWidth: '430px',
   },
   brandHeader: {
     textAlign: 'center',
     marginBottom: '1.75rem',
   },
   brandIcon: {
-    width: '48px',
-    height: '48px',
+    width: '50px',
+    height: '50px',
     borderRadius: '14px',
-    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 10px 20px rgba(79, 70, 229, 0.25)',
+    boxShadow: '0 0 25px rgba(99, 102, 241, 0.5)',
     marginBottom: '1rem',
   },
   title: {
-    fontSize: '1.65rem',
+    fontSize: '1.75rem',
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.02em',
     marginBottom: '0.35rem',
   },
   subtitle: {
     fontSize: '0.95rem',
-    color: '#64748b',
+    color: '#94a3b8',
   },
   errorBanner: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.65rem',
-    background: '#fef2f2',
-    border: '1px solid #fee2e2',
+    background: 'rgba(244, 63, 94, 0.12)',
+    border: '1px solid rgba(244, 63, 94, 0.3)',
     borderRadius: '10px',
-    padding: '0.75rem 1rem',
+    padding: '0.8rem 1rem',
     marginBottom: '1.25rem',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.15rem',
+    gap: '1.25rem',
   },
   label: {
     display: 'block',
     fontSize: '0.85rem',
     fontWeight: '600',
-    color: '#334155',
+    color: '#cbd5e1',
     marginBottom: '0.45rem',
   },
   inputWrapper: {
@@ -187,16 +183,17 @@ const styles = {
   },
   fieldIcon: {
     position: 'absolute',
-    left: '0.9rem',
+    left: '1rem',
     pointerEvents: 'none',
   },
   input: {
     width: '100%',
-    padding: '0.75rem 0.9rem 0.75rem 2.6rem',
-    border: '1px solid #cbd5e1',
+    padding: '0.85rem 1rem 0.85rem 2.75rem',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
     borderRadius: '10px',
     fontSize: '0.95rem',
-    color: '#0f172a',
+    color: '#ffffff',
+    background: '#0f172a',
     outline: 'none',
   },
   eyeButton: {
@@ -211,29 +208,29 @@ const styles = {
   },
   submitBtn: {
     marginTop: '0.5rem',
-    padding: '0.85rem',
-    background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+    padding: '0.9rem',
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
     color: '#ffffff',
     border: 'none',
     borderRadius: '10px',
     fontSize: '1rem',
-    fontWeight: '600',
+    fontWeight: '700',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.5rem',
-    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+    boxShadow: '0 0 25px rgba(99, 102, 241, 0.4)',
   },
   footer: {
     textAlign: 'center',
-    marginTop: '1.75rem',
+    marginTop: '2rem',
     paddingTop: '1.25rem',
-    borderTop: '1px solid #f1f5f9',
+    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
   },
   footerLink: {
-    color: '#4f46e5',
-    fontWeight: '600',
+    color: '#a5b4fc',
+    fontWeight: '700',
     fontSize: '0.9rem',
   },
 };

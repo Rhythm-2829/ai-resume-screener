@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Sparkles, FileUp, LineChart, History, LogOut } from 'lucide-react';
+import { Sparkles, FileUp, LineChart, LayoutDashboard, LogOut } from 'lucide-react';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: History },
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Upload', path: '/upload', icon: FileUp },
     { label: 'Analyze', path: '/analyze', icon: LineChart },
   ];
@@ -25,8 +25,8 @@ export default function Navbar() {
             <Sparkles size={18} color="#ffffff" />
           </div>
           <div>
-            <span style={styles.logoText}>Resume<span style={{ color: '#4f46e5' }}>AI</span></span>
-            <span style={styles.badge}>ATS Screener</span>
+            <span style={styles.logoText}>Resume<span style={{ color: '#818cf8' }}>AI</span></span>
+            <span style={styles.badge}>ATS Core</span>
           </div>
         </Link>
 
@@ -43,7 +43,7 @@ export default function Navbar() {
                   ...(isActive ? styles.activeLink : {}),
                 }}
               >
-                <Icon size={16} color={isActive ? '#4f46e5' : '#64748b'} />
+                <Icon size={16} color={isActive ? '#818cf8' : '#94a3b8'} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -52,8 +52,8 @@ export default function Navbar() {
 
         <div style={styles.userSection}>
           <button onClick={logout} style={styles.logoutBtn} title="Sign Out">
-            <LogOut size={16} />
-            <span style={{ display: 'inline' }}>Sign Out</span>
+            <LogOut size={15} />
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
@@ -66,9 +66,10 @@ const styles = {
     position: 'sticky',
     top: 0,
     zIndex: 50,
-    background: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(12px)',
-    borderBottom: '1px solid #e2e8f0',
+    background: 'rgba(9, 13, 22, 0.75)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
     width: '100%',
   },
   container: {
@@ -89,16 +90,16 @@ const styles = {
     width: '34px',
     height: '34px',
     borderRadius: '10px',
-    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 10px rgba(79, 70, 229, 0.25)',
+    boxShadow: '0 0 20px rgba(99, 102, 241, 0.5)',
   },
   logoText: {
     fontSize: '1.25rem',
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.02em',
   },
   badge: {
@@ -106,10 +107,11 @@ const styles = {
     fontSize: '0.65rem',
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    color: '#4f46e5',
-    background: '#eef2ff',
-    padding: '0.1rem 0.4rem',
+    letterSpacing: '0.08em',
+    color: '#a5b4fc',
+    background: 'rgba(99, 102, 241, 0.18)',
+    border: '1px solid rgba(99, 102, 241, 0.35)',
+    padding: '0.1rem 0.45rem',
     borderRadius: '4px',
     marginLeft: '0.5rem',
     verticalAlign: 'middle',
@@ -117,22 +119,28 @@ const styles = {
   navLinks: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
+    gap: '0.4rem',
+    background: 'rgba(15, 23, 42, 0.6)',
+    padding: '0.25rem',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
   },
   link: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.4rem',
-    padding: '0.5rem 0.9rem',
-    borderRadius: '8px',
-    color: '#64748b',
+    gap: '0.45rem',
+    padding: '0.45rem 0.95rem',
+    borderRadius: '9px',
+    color: '#94a3b8',
     fontWeight: '600',
-    fontSize: '0.9rem',
-    transition: 'all 0.15s ease',
+    fontSize: '0.88rem',
+    transition: 'all 0.18s ease',
   },
   activeLink: {
-    color: '#4f46e5',
-    background: '#f1f5f9',
+    color: '#ffffff',
+    background: 'rgba(99, 102, 241, 0.25)',
+    border: '1px solid rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 0 15px rgba(99, 102, 241, 0.2)',
   },
   userSection: {
     display: 'flex',
@@ -143,14 +151,14 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.4rem',
-    background: '#ffffff',
-    border: '1px solid #e2e8f0',
-    color: '#64748b',
+    background: 'rgba(255, 255, 255, 0.04)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    color: '#cbd5e1',
     padding: '0.45rem 0.9rem',
-    borderRadius: '8px',
+    borderRadius: '9px',
     fontSize: '0.85rem',
     fontWeight: '600',
     cursor: 'pointer',
-    transition: 'all 0.15s ease',
+    transition: 'all 0.18s ease',
   },
 };

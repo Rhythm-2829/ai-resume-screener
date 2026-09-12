@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, AlertCircle, ArrowRight, Loader2, Calendar, HardDrive, Trash2 } from 'lucide-react';
+import {
+  UploadCloud,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  Calendar,
+  Trash2,
+  Sparkles,
+} from 'lucide-react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 
@@ -94,13 +104,19 @@ export default function UploadPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '4rem' }}>
       <Navbar />
       <main style={styles.container}>
         {/* Page Header */}
         <div style={styles.header}>
+          <div style={styles.headerTag}>
+            <Sparkles size={14} color="#818cf8" />
+            <span>Document Extraction</span>
+          </div>
           <h1 style={styles.title}>Upload Resume</h1>
-          <p style={styles.subtitle}>Upload your PDF resume to extract text and run AI-powered ATS screening.</p>
+          <p style={styles.subtitle}>
+            Upload your PDF resume to extract raw text, identify ATS formatting, and benchmark against roles.
+          </p>
         </div>
 
         {/* Message Banner */}
@@ -108,22 +124,22 @@ export default function UploadPage() {
           <div
             style={{
               ...styles.messageBanner,
-              background: message.type === 'success' ? '#ecfdf5' : '#fef2f2',
-              borderColor: message.type === 'success' ? '#a7f3d0' : '#fecaca',
-              color: message.type === 'success' ? '#065f46' : '#991b1b',
+              background: message.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+              borderColor: message.type === 'success' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(244, 63, 94, 0.35)',
+              color: message.type === 'success' ? '#34d399' : '#fca5a5',
             }}
           >
             {message.type === 'success' ? (
               <CheckCircle2 size={18} color="#10b981" />
             ) : (
-              <AlertCircle size={18} color="#ef4444" />
+              <AlertCircle size={18} color="#f43f5e" />
             )}
             <span>{message.text}</span>
           </div>
         )}
 
         {/* Upload Dropzone Card */}
-        <div style={styles.card}>
+        <div className="glass-panel" style={styles.card}>
           <form onSubmit={handleUpload}>
             <div
               onDragOver={handleDragOver}
@@ -131,8 +147,9 @@ export default function UploadPage() {
               onDrop={handleDrop}
               style={{
                 ...styles.dropzone,
-                borderColor: isDragging ? '#4f46e5' : '#cbd5e1',
-                background: isDragging ? '#eef2ff' : '#fafafa',
+                borderColor: isDragging ? '#818cf8' : 'rgba(255, 255, 255, 0.15)',
+                background: isDragging ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                boxShadow: isDragging ? '0 0 30px rgba(99, 102, 241, 0.3)' : 'none',
               }}
             >
               <input
@@ -144,12 +161,12 @@ export default function UploadPage() {
               />
 
               <div style={styles.iconCircle}>
-                <UploadCloud size={32} color="#4f46e5" />
+                <UploadCloud size={34} color="#818cf8" />
               </div>
 
               <label htmlFor="resumeFileInput" style={styles.dropzoneLabel}>
-                <span style={{ color: '#4f46e5', fontWeight: '700', cursor: 'pointer' }}>
-                  Click to browse
+                <span style={{ color: '#818cf8', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
+                  Click to select file
                 </span>{' '}
                 or drag and drop your PDF here
               </label>
@@ -157,19 +174,20 @@ export default function UploadPage() {
               <div style={styles.dropzoneFooter}>
                 <span style={styles.badge}>PDF Only</span>
                 <span style={styles.badge}>Max 5MB</span>
+                <span style={styles.badge}>Apache PDFBox Extractor</span>
               </div>
             </div>
 
             {/* Selected File Card */}
             {file && (
-              <div style={styles.selectedFileCard}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={styles.selectedFileCard} className="animate-fade-in">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                   <div style={styles.pdfIcon}>
-                    <FileText size={20} color="#ef4444" />
+                    <FileText size={20} color="#f43f5e" />
                   </div>
                   <div>
-                    <p style={{ fontWeight: '600', color: '#0f172a', fontSize: '0.95rem' }}>{file.name}</p>
-                    <p style={{ color: '#64748b', fontSize: '0.8rem' }}>{formatFileSize(file.size)}</p>
+                    <p style={{ fontWeight: '700', color: '#ffffff', fontSize: '0.95rem' }}>{file.name}</p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.82rem' }}>{formatFileSize(file.size)}</p>
                   </div>
                 </div>
                 <button
@@ -195,12 +213,12 @@ export default function UploadPage() {
               {loading ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  <span>Extracting & Uploading...</span>
+                  <span>Extracting Text with PDFBox...</span>
                 </>
               ) : (
                 <>
                   <UploadCloud size={18} />
-                  <span>Upload & Process Resume</span>
+                  <span>Upload & Process Document</span>
                 </>
               )}
             </button>
@@ -208,37 +226,41 @@ export default function UploadPage() {
         </div>
 
         {/* Resumes Library */}
-        <div style={{ marginTop: '2.5rem' }}>
+        <div style={{ marginTop: '3rem' }}>
           <div style={styles.sectionHeader}>
-            <h2 style={styles.sectionTitle}>Uploaded Resumes</h2>
-            <span style={styles.countBadge}>{resumes.length} {resumes.length === 1 ? 'file' : 'files'}</span>
+            <h2 style={styles.sectionTitle}>Uploaded Documents</h2>
+            <span style={styles.countBadge}>
+              {resumes.length} {resumes.length === 1 ? 'file' : 'files'}
+            </span>
           </div>
 
           {fetchingResumes ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
-              <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 0.5rem' }} />
-              <p>Loading your resumes...</p>
+            <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+              <Loader2 size={26} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 0.65rem' }} />
+              <p>Loading document repository...</p>
             </div>
           ) : resumes.length === 0 ? (
-            <div style={styles.emptyCard}>
-              <FileText size={36} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
-              <p style={{ fontWeight: '600', color: '#475569' }}>No resumes uploaded yet</p>
-              <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Upload a PDF resume above to get started with AI analysis.</p>
+            <div className="glass-panel" style={styles.emptyCard}>
+              <FileText size={40} color="#475569" style={{ marginBottom: '0.65rem' }} />
+              <p style={{ fontWeight: '700', color: '#cbd5e1' }}>No resumes uploaded yet</p>
+              <p style={{ fontSize: '0.88rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                Upload a PDF resume above to start testing with ATS AI screening.
+              </p>
             </div>
           ) : (
             <div style={styles.resumesGrid}>
               {resumes.map((r) => (
-                <div key={r.id} style={styles.resumeCard}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div key={r.id} className="glass-panel" style={styles.resumeCard}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
                     <div style={styles.cardPdfIcon}>
-                      <FileText size={20} color="#4f46e5" />
+                      <FileText size={20} color="#818cf8" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <h3 style={styles.resumeName} title={r.fileName}>
                         {r.fileName}
                       </h3>
                       <div style={styles.metaRow}>
-                        <Calendar size={13} color="#94a3b8" />
+                        <Calendar size={13} color="#64748b" />
                         <span>
                           {r.uploadedAt
                             ? new Date(r.uploadedAt).toLocaleDateString('en-US', {
@@ -256,7 +278,7 @@ export default function UploadPage() {
                     style={styles.analyzeActionBtn}
                     onClick={() => navigate('/analyze', { state: { resumeId: r.id } })}
                   >
-                    <span>Analyze</span>
+                    <span>Analyze This Resume</span>
                     <ArrowRight size={14} />
                   </button>
                 </div>
@@ -271,23 +293,38 @@ export default function UploadPage() {
 
 const styles = {
   container: {
-    maxWidth: '850px',
+    maxWidth: '900px',
     margin: '2rem auto',
     padding: '0 1.5rem',
   },
   header: {
-    marginBottom: '1.75rem',
+    marginBottom: '2rem',
+  },
+  headerTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.45rem',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
+    color: '#a5b4fc',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    marginBottom: '0.65rem',
   },
   title: {
-    fontSize: '1.75rem',
+    fontSize: '2.1rem',
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.02em',
   },
   subtitle: {
-    fontSize: '0.95rem',
-    color: '#64748b',
-    marginTop: '0.25rem',
+    fontSize: '0.98rem',
+    color: '#94a3b8',
+    marginTop: '0.35rem',
   },
   messageBanner: {
     display: 'flex',
@@ -298,68 +335,69 @@ const styles = {
     border: '1px solid',
     marginBottom: '1.5rem',
     fontSize: '0.9rem',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   card: {
-    background: '#ffffff',
-    borderRadius: '16px',
-    padding: '1.75rem',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03)',
-    border: '1px solid #e2e8f0',
+    padding: '2rem',
   },
   dropzone: {
-    border: '2px dashed #cbd5e1',
-    borderRadius: '12px',
-    padding: '2.5rem 1.5rem',
+    border: '2px dashed rgba(255, 255, 255, 0.15)',
+    borderRadius: '14px',
+    padding: '3rem 1.5rem',
     textAlign: 'center',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: 'all 0.25s ease',
   },
   iconCircle: {
-    width: '56px',
-    height: '56px',
+    width: '64px',
+    height: '64px',
     borderRadius: '50%',
-    background: '#eef2ff',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '1rem',
+    marginBottom: '1.25rem',
+    boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)',
   },
   dropzoneLabel: {
     display: 'block',
     fontSize: '0.95rem',
-    color: '#475569',
-    marginBottom: '0.75rem',
+    color: '#cbd5e1',
+    marginBottom: '1rem',
   },
   dropzoneFooter: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '0.5rem',
+    gap: '0.6rem',
+    flexWrap: 'wrap',
   },
   badge: {
     fontSize: '0.75rem',
-    fontWeight: '600',
-    color: '#64748b',
-    background: '#f1f5f9',
-    padding: '0.2rem 0.6rem',
+    fontWeight: '700',
+    color: '#a5b4fc',
+    background: 'rgba(255, 255, 255, 0.04)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    padding: '0.25rem 0.65rem',
     borderRadius: '6px',
   },
   selectedFileCard: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '0.9rem 1.25rem',
-    background: '#f8fafc',
-    borderRadius: '10px',
-    border: '1px solid #e2e8f0',
+    padding: '1rem 1.35rem',
+    background: 'rgba(15, 23, 42, 0.6)',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
     marginTop: '1.25rem',
   },
   pdfIcon: {
-    width: '36px',
-    height: '36px',
+    width: '38px',
+    height: '38px',
     borderRadius: '8px',
-    background: '#fee2e2',
+    background: 'rgba(244, 63, 94, 0.15)',
+    border: '1px solid rgba(244, 63, 94, 0.3)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -369,64 +407,61 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     padding: '0.4rem',
-    borderRadius: '6px',
   },
   uploadBtn: {
-    marginTop: '1.25rem',
+    marginTop: '1.5rem',
     width: '100%',
-    padding: '0.85rem',
-    background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+    padding: '0.95rem',
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
     color: '#ffffff',
     border: 'none',
     borderRadius: '10px',
     fontSize: '1rem',
-    fontWeight: '600',
+    fontWeight: '700',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.5rem',
-    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+    boxShadow: '0 0 25px rgba(99, 102, 241, 0.4)',
   },
   sectionHeader: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '1rem',
+    marginBottom: '1.25rem',
   },
   sectionTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: '1.35rem',
+    fontWeight: '800',
+    color: '#ffffff',
   },
   countBadge: {
     fontSize: '0.8rem',
-    fontWeight: '600',
-    color: '#64748b',
-    background: '#e2e8f0',
-    padding: '0.2rem 0.6rem',
+    fontWeight: '700',
+    color: '#a5b4fc',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
+    padding: '0.2rem 0.65rem',
     borderRadius: '9999px',
   },
   resumesGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-    gap: '1rem',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+    gap: '1.25rem',
   },
   resumeCard: {
-    background: '#ffffff',
-    borderRadius: '12px',
-    padding: '1.15rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
+    padding: '1.25rem',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    gap: '1rem',
+    gap: '1.25rem',
   },
   cardPdfIcon: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '8px',
-    background: '#eef2ff',
+    width: '38px',
+    height: '38px',
+    borderRadius: '10px',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -435,7 +470,7 @@ const styles = {
   resumeName: {
     fontSize: '0.95rem',
     fontWeight: '700',
-    color: '#0f172a',
+    color: '#ffffff',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -445,30 +480,27 @@ const styles = {
     alignItems: 'center',
     gap: '0.35rem',
     fontSize: '0.8rem',
-    color: '#94a3b8',
-    marginTop: '0.2rem',
+    color: '#64748b',
+    marginTop: '0.25rem',
   },
   analyzeActionBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '0.4rem',
+    gap: '0.45rem',
     width: '100%',
-    padding: '0.5rem',
-    background: '#f1f5f9',
-    color: '#4f46e5',
-    border: 'none',
+    padding: '0.6rem',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
+    color: '#a5b4fc',
     borderRadius: '8px',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: '0.85rem',
     cursor: 'pointer',
-    transition: 'all 0.15s ease',
+    transition: 'all 0.18s ease',
   },
   emptyCard: {
-    background: '#ffffff',
-    borderRadius: '12px',
-    padding: '3rem 1.5rem',
+    padding: '3.5rem 1.5rem',
     textAlign: 'center',
-    border: '1px solid #e2e8f0',
   },
 };

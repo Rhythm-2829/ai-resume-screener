@@ -11,6 +11,7 @@ import {
   Award,
   Loader2,
   FolderPlus,
+  Zap,
 } from 'lucide-react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
@@ -44,72 +45,78 @@ export default function DashboardPage() {
     (a.summary || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getScoreBadgeColor = (score) => {
-    if (score >= 75) return { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0' };
-    if (score >= 50) return { bg: '#fffbeb', text: '#d97706', border: '#fde68a' };
-    return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' };
+  const getScoreBadgeConfig = (score) => {
+    if (score >= 75) return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981', border: 'rgba(16, 185, 129, 0.4)', glow: 'rgba(16, 185, 129, 0.3)' };
+    if (score >= 50) return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.4)', glow: 'rgba(245, 158, 11, 0.3)' };
+    return { bg: 'rgba(244, 63, 94, 0.15)', text: '#f43f5e', border: 'rgba(244, 63, 94, 0.4)', glow: 'rgba(244, 63, 94, 0.3)' };
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '3rem' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '4rem' }}>
       <Navbar />
       <main style={styles.container}>
-        {/* Header Bar */}
-        <div style={styles.header}>
+        {/* Welcome Hero Bar */}
+        <div style={styles.heroSection}>
           <div>
+            <div style={styles.badgePill}>
+              <Zap size={14} color="#818cf8" />
+              <span>Real-time Candidate Analytics</span>
+            </div>
             <h1 style={styles.title}>Candidate Dashboard</h1>
-            <p style={styles.subtitle}>Track your resume ATS benchmarks and review past AI analyses.</p>
+            <p style={styles.subtitle}>
+              Monitor ATS score progression, evaluate JD compatibility, and review past Groq AI insights.
+            </p>
           </div>
           <button style={styles.primaryBtn} onClick={() => navigate('/analyze')}>
             <Plus size={18} />
-            <span>New Analysis</span>
+            <span>New AI Screen</span>
           </button>
         </div>
 
-        {/* Metrics Row */}
+        {/* Metrics Grid */}
         <div style={styles.metricsGrid}>
-          <div style={styles.metricCard}>
-            <div style={{ ...styles.metricIconBox, background: '#eef2ff' }}>
-              <FileCheck2 size={22} color="#4f46e5" />
+          <div className="glass-panel" style={styles.metricCard}>
+            <div style={{ ...styles.metricIconBox, background: 'rgba(99, 102, 241, 0.18)', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+              <FileCheck2 size={24} color="#818cf8" />
             </div>
             <div>
-              <p style={styles.metricLabel}>Total Analyses</p>
+              <p style={styles.metricLabel}>Total Evaluations</p>
               <h3 style={styles.metricValue}>{totalCount}</h3>
             </div>
           </div>
 
-          <div style={styles.metricCard}>
-            <div style={{ ...styles.metricIconBox, background: '#ecfdf5' }}>
-              <TrendingUp size={22} color="#10b981" />
+          <div className="glass-panel" style={styles.metricCard}>
+            <div style={{ ...styles.metricIconBox, background: 'rgba(16, 185, 129, 0.18)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+              <TrendingUp size={24} color="#10b981" />
             </div>
             <div>
               <p style={styles.metricLabel}>Avg Match Score</p>
-              <h3 style={{ ...styles.metricValue, color: '#059669' }}>
+              <h3 style={{ ...styles.metricValue, color: '#10b981' }}>
                 {totalCount > 0 ? `${avgScore}%` : '—'}
               </h3>
             </div>
           </div>
 
-          <div style={styles.metricCard}>
-            <div style={{ ...styles.metricIconBox, background: '#fffbeb' }}>
-              <Award size={22} color="#f59e0b" />
+          <div className="glass-panel" style={styles.metricCard}>
+            <div style={{ ...styles.metricIconBox, background: 'rgba(245, 158, 11, 0.18)', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              <Award size={24} color="#f59e0b" />
             </div>
             <div>
               <p style={styles.metricLabel}>Highest Match</p>
-              <h3 style={{ ...styles.metricValue, color: '#d97706' }}>
+              <h3 style={{ ...styles.metricValue, color: '#f59e0b' }}>
                 {totalCount > 0 ? `${bestScore}%` : '—'}
               </h3>
             </div>
           </div>
         </div>
 
-        {/* Search & Filter Bar */}
+        {/* Search Bar */}
         <div style={styles.searchBarWrapper}>
           <div style={styles.searchBox}>
-            <Search size={18} color="#94a3b8" />
+            <Search size={18} color="#64748b" />
             <input
               type="text"
-              placeholder="Search by keywords or job description..."
+              placeholder="Search previous evaluations by role keywords or requirements..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={styles.searchInput}
@@ -119,20 +126,20 @@ export default function DashboardPage() {
 
         {/* Content List */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3.5rem', color: '#94a3b8' }}>
-            <Loader2 size={32} className="animate-spin" style={{ margin: '0 auto 0.75rem' }} />
-            <p>Loading your analysis history...</p>
+          <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8' }}>
+            <Loader2 size={32} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 0.85rem' }} />
+            <p>Loading your ATS evaluation history...</p>
           </div>
         ) : totalCount === 0 ? (
-          <div style={styles.emptyState}>
+          <div className="glass-panel" style={styles.emptyState}>
             <div style={styles.emptyIconCircle}>
-              <FolderPlus size={36} color="#4f46e5" />
+              <FolderPlus size={36} color="#818cf8" />
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.35rem' }}>
-              No evaluations yet
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', marginBottom: '0.45rem' }}>
+              No evaluations on record
             </h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '380px', margin: '0 auto 1.5rem' }}>
-              Upload your resume and run your first AI ATS screen against any job description to view insights here.
+            <p style={{ color: '#94a3b8', fontSize: '0.92rem', maxWidth: '420px', margin: '0 auto 1.75rem', lineHeight: '1.5' }}>
+              Upload your resume and screen your first job description to view intelligent matching insights here.
             </p>
             <button style={styles.primaryBtn} onClick={() => navigate('/upload')}>
               <Plus size={18} />
@@ -140,16 +147,17 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : filteredAnalyses.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-            <p>No analyses match your search query: "{searchTerm}".</p>
+          <div style={{ textAlign: 'center', padding: '3.5rem', color: '#94a3b8' }}>
+            <p>No evaluations match your search query: "{searchTerm}".</p>
           </div>
         ) : (
           <div style={styles.historyList}>
             {filteredAnalyses.map((item) => {
-              const badgeStyle = getScoreBadgeColor(item.matchScore);
+              const badge = getScoreBadgeConfig(item.matchScore);
               return (
                 <div
                   key={item.id}
+                  className="glass-panel"
                   style={styles.historyCard}
                   onClick={() => navigate(`/analysis/${item.id}`)}
                 >
@@ -157,15 +165,16 @@ export default function DashboardPage() {
                     <div
                       style={{
                         ...styles.scoreBadge,
-                        background: badgeStyle.bg,
-                        borderColor: badgeStyle.border,
-                        color: badgeStyle.text,
+                        background: badge.bg,
+                        borderColor: badge.border,
+                        color: badge.text,
+                        boxShadow: `0 0 15px -3px ${badge.glow}`,
                       }}
                     >
-                      <span style={{ fontSize: '1.15rem', fontWeight: '800' }}>
+                      <span style={{ fontSize: '1.25rem', fontWeight: '800' }}>
                         {item.matchScore}%
                       </span>
-                      <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: '700' }}>
+                      <span style={{ fontSize: '0.62rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>
                         Score
                       </span>
                     </div>
@@ -174,11 +183,11 @@ export default function DashboardPage() {
                   <div style={styles.cardCenter}>
                     <p style={styles.jdSnippet}>
                       {item.jobDescription
-                        ? item.jobDescription.substring(0, 140) + '...'
+                        ? item.jobDescription.substring(0, 150) + '...'
                         : 'No description text'}
                     </p>
                     <div style={styles.cardMeta}>
-                      <Calendar size={13} color="#94a3b8" />
+                      <Calendar size={13} color="#64748b" />
                       <span>
                         {item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString('en-US', {
@@ -195,7 +204,7 @@ export default function DashboardPage() {
 
                   <div style={styles.cardRight}>
                     <button style={styles.viewDetailBtn}>
-                      <span>View Report</span>
+                      <span>Report</span>
                       <ArrowRight size={14} />
                     </button>
                   </div>
@@ -211,62 +220,76 @@ export default function DashboardPage() {
 
 const styles = {
   container: {
-    maxWidth: '1000px',
+    maxWidth: '1050px',
     margin: '2rem auto',
     padding: '0 1.5rem',
   },
-  header: {
+  heroSection: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: '2rem',
+    marginBottom: '2.5rem',
     flexWrap: 'wrap',
-    gap: '1rem',
+    gap: '1.25rem',
+  },
+  badgePill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.45rem',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
+    color: '#a5b4fc',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    marginBottom: '0.65rem',
   },
   title: {
-    fontSize: '1.85rem',
+    fontSize: '2.2rem',
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.02em',
   },
   subtitle: {
-    fontSize: '0.95rem',
-    color: '#64748b',
-    marginTop: '0.2rem',
+    fontSize: '0.98rem',
+    color: '#94a3b8',
+    marginTop: '0.35rem',
+    maxWidth: '620px',
+    lineHeight: '1.5',
   },
   primaryBtn: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.45rem',
-    padding: '0.75rem 1.35rem',
-    background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+    gap: '0.5rem',
+    padding: '0.85rem 1.45rem',
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
     color: '#ffffff',
     border: 'none',
     borderRadius: '10px',
     fontWeight: '700',
     fontSize: '0.95rem',
     cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+    boxShadow: '0 0 25px rgba(99, 102, 241, 0.4)',
+    transition: 'all 0.2s ease',
   },
   metricsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
     gap: '1.25rem',
-    marginBottom: '2rem',
+    marginBottom: '2.25rem',
   },
   metricCard: {
-    background: '#ffffff',
-    borderRadius: '14px',
-    padding: '1.25rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.03)',
+    padding: '1.35rem',
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
+    gap: '1.15rem',
   },
   metricIconBox: {
-    width: '46px',
-    height: '46px',
+    width: '48px',
+    height: '48px',
     borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
@@ -275,36 +298,37 @@ const styles = {
   },
   metricLabel: {
     fontSize: '0.8rem',
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: '700',
+    color: '#94a3b8',
     textTransform: 'uppercase',
-    letterSpacing: '0.04em',
+    letterSpacing: '0.05em',
   },
   metricValue: {
-    fontSize: '1.5rem',
+    fontSize: '1.65rem',
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
     marginTop: '0.15rem',
   },
   searchBarWrapper: {
-    marginBottom: '1.5rem',
+    marginBottom: '1.75rem',
   },
   searchBox: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.65rem',
-    background: '#ffffff',
-    padding: '0.75rem 1.15rem',
-    borderRadius: '10px',
-    border: '1px solid #cbd5e1',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
+    gap: '0.75rem',
+    background: 'rgba(15, 23, 42, 0.6)',
+    padding: '0.85rem 1.25rem',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
   },
   searchInput: {
     border: 'none',
     outline: 'none',
     width: '100%',
     fontSize: '0.95rem',
-    color: '#0f172a',
+    color: '#ffffff',
+    background: 'transparent',
   },
   historyList: {
     display: 'flex',
@@ -312,16 +336,11 @@ const styles = {
     gap: '1rem',
   },
   historyCard: {
-    background: '#ffffff',
-    borderRadius: '14px',
-    padding: '1.25rem 1.5rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.03)',
+    padding: '1.35rem 1.65rem',
     display: 'flex',
     alignItems: 'center',
-    gap: '1.5rem',
+    gap: '1.65rem',
     cursor: 'pointer',
-    transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
   },
   cardLeft: {
     flexShrink: 0,
@@ -329,7 +348,7 @@ const styles = {
   scoreBadge: {
     width: '64px',
     height: '64px',
-    borderRadius: '12px',
+    borderRadius: '14px',
     border: '1px solid',
     display: 'flex',
     flexDirection: 'column',
@@ -342,17 +361,17 @@ const styles = {
   },
   jdSnippet: {
     fontSize: '0.95rem',
-    color: '#334155',
+    color: '#cbd5e1',
     fontWeight: '500',
-    lineHeight: '1.45',
+    lineHeight: '1.5',
   },
   cardMeta: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.35rem',
-    fontSize: '0.8rem',
-    color: '#94a3b8',
-    marginTop: '0.4rem',
+    gap: '0.4rem',
+    fontSize: '0.82rem',
+    color: '#64748b',
+    marginTop: '0.45rem',
   },
   cardRight: {
     flexShrink: 0,
@@ -360,31 +379,31 @@ const styles = {
   viewDetailBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.35rem',
-    padding: '0.45rem 0.85rem',
-    background: '#f1f5f9',
-    color: '#4f46e5',
-    border: 'none',
+    gap: '0.4rem',
+    padding: '0.5rem 0.95rem',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
+    color: '#a5b4fc',
     borderRadius: '8px',
     fontSize: '0.85rem',
     fontWeight: '600',
     cursor: 'pointer',
+    transition: 'all 0.18s ease',
   },
   emptyState: {
-    background: '#ffffff',
-    borderRadius: '16px',
-    padding: '3.5rem 2rem',
+    padding: '4rem 2rem',
     textAlign: 'center',
-    border: '1px solid #e2e8f0',
   },
   emptyIconCircle: {
-    width: '64px',
-    height: '64px',
+    width: '68px',
+    height: '68px',
     borderRadius: '50%',
-    background: '#eef2ff',
+    background: 'rgba(99, 102, 241, 0.15)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '1rem',
+    marginBottom: '1.25rem',
+    boxShadow: '0 0 25px rgba(99, 102, 241, 0.3)',
   },
 };

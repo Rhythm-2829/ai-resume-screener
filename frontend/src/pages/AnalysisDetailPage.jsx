@@ -11,6 +11,10 @@ import {
   Briefcase,
   FileSearch,
   Loader2,
+  Layers,
+  FileCheck,
+  CheckSquare,
+  XSquare,
 } from 'lucide-react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
@@ -20,6 +24,7 @@ export default function AnalysisDetailPage() {
   const { id } = useParams();
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'skills' | 'rewrites' | 'jd'
   const [copiedIndex, setCopiedIndex] = useState(null);
   const navigate = useNavigate();
 
@@ -47,7 +52,7 @@ export default function AnalysisDetailPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '3.5rem' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '4rem' }}>
       <Navbar />
       <main style={styles.container}>
         {/* Navigation Breadcrumb */}
@@ -57,170 +62,254 @@ export default function AnalysisDetailPage() {
         </button>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8' }}>
-            <Loader2 size={32} className="animate-spin" style={{ margin: '0 auto 0.75rem' }} />
+          <div style={{ textAlign: 'center', padding: '4.5rem', color: '#94a3b8' }}>
+            <Loader2 size={32} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 0.85rem' }} />
             <p>Loading evaluation details...</p>
           </div>
         ) : !analysis ? (
-          <div style={styles.card}>
-            <p style={{ color: '#ef4444' }}>Analysis report not found.</p>
+          <div className="glass-panel" style={styles.card}>
+            <p style={{ color: '#f43f5e' }}>Analysis report not found.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }} className="animate-fade-in">
             {/* Page Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div>
-                <h1 style={styles.title}>ATS Evaluation Report #{analysis.id}</h1>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#64748b', fontSize: '0.85rem', marginTop: '0.2rem' }}>
-                  <Calendar size={14} color="#94a3b8" />
-                  <span>
-                    Generated on{' '}
-                    {analysis.createdAt
-                      ? new Date(analysis.createdAt).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : 'Recently'}
-                  </span>
-                </div>
+            <div>
+              <h1 style={styles.title}>ATS Diagnostic Report #{analysis.id}</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.35rem' }}>
+                <Calendar size={14} color="#64748b" />
+                <span>
+                  Evaluated on{' '}
+                  {analysis.createdAt
+                    ? new Date(analysis.createdAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'Recently'}
+                </span>
               </div>
             </div>
 
-            {/* Score & Summary Banner */}
-            <div style={styles.heroResultCard}>
+            {/* Top Hero Banner */}
+            <div className="glass-panel" style={styles.heroResultCard}>
               <div style={styles.scoreCol}>
-                <ScoreBadge score={analysis.matchScore} size={140} />
+                <ScoreBadge score={analysis.matchScore} size={150} />
               </div>
               <div style={styles.summaryCol}>
                 <div style={styles.summaryBadge}>
-                  <FileSearch size={14} color="#4f46e5" />
-                  <span>Executive Assessment</span>
+                  <FileSearch size={14} color="#a5b4fc" />
+                  <span>Candidate Fit Overview</span>
                 </div>
-                <h3 style={styles.summaryHeading}>Candidate Fit Summary</h3>
+                <h3 style={styles.summaryHeading}>Diagnostic Assessment</h3>
                 <p style={styles.summaryText}>{analysis.summary}</p>
               </div>
             </div>
 
-            {/* Strengths & Skill Gaps 2-Column Grid */}
-            <div style={styles.insightsGrid}>
-              {/* Strengths */}
-              <div style={styles.card}>
-                <div style={styles.insightHeader}>
-                  <div style={{ ...styles.insightIcon, background: '#ecfdf5' }}>
-                    <CheckCircle2 size={18} color="#10b981" />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#065f46' }}>Key Strengths</h3>
-                    <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Matched competencies & keywords</p>
-                  </div>
-                </div>
-                <ul style={styles.list}>
-                  {parseJson(analysis.strengths).map((s, i) => (
-                    <li key={i} style={styles.strengthItem}>
-                      <span style={styles.greenDot}></span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Skill Gaps */}
-              <div style={styles.card}>
-                <div style={styles.insightHeader}>
-                  <div style={{ ...styles.insightIcon, background: '#fffbeb' }}>
-                    <AlertTriangle size={18} color="#f59e0b" />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#92400e' }}>Identified Skill Gaps</h3>
-                    <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Missing or unmentioned requirements</p>
-                  </div>
-                </div>
-                <ul style={styles.list}>
-                  {parseJson(analysis.skillGaps).map((g, i) => (
-                    <li key={i} style={styles.gapItem}>
-                      <span style={styles.amberDot}></span>
-                      <span>{g}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {/* Studio Navigation Tabs */}
+            <div style={styles.tabNav}>
+              <button
+                style={{
+                  ...styles.tabBtn,
+                  ...(activeTab === 'overview' ? styles.activeTabBtn : {}),
+                }}
+                onClick={() => setActiveTab('overview')}
+              >
+                <Layers size={16} />
+                <span>Overview & Fit</span>
+              </button>
+              <button
+                style={{
+                  ...styles.tabBtn,
+                  ...(activeTab === 'skills' ? styles.activeTabBtn : {}),
+                }}
+                onClick={() => setActiveTab('skills')}
+              >
+                <FileCheck size={16} />
+                <span>Skills Matrix</span>
+              </button>
+              <button
+                style={{
+                  ...styles.tabBtn,
+                  ...(activeTab === 'rewrites' ? styles.activeTabBtn : {}),
+                }}
+                onClick={() => setActiveTab('rewrites')}
+              >
+                <Lightbulb size={16} />
+                <span>Bullet Rewrites</span>
+              </button>
+              <button
+                style={{
+                  ...styles.tabBtn,
+                  ...(activeTab === 'jd' ? styles.activeTabBtn : {}),
+                }}
+                onClick={() => setActiveTab('jd')}
+              >
+                <Briefcase size={16} />
+                <span>Job Description</span>
+              </button>
             </div>
 
-            {/* Bullet Suggestions Studio */}
-            <div style={styles.card}>
-              <div style={styles.insightHeader}>
-                <div style={{ ...styles.insightIcon, background: '#eef2ff' }}>
-                  <Lightbulb size={18} color="#4f46e5" />
+            {/* TAB 1: OVERVIEW */}
+            {activeTab === 'overview' && (
+              <div style={styles.insightsGrid} className="animate-fade-in">
+                {/* Strengths */}
+                <div className="glass-panel" style={styles.card}>
+                  <div style={styles.insightHeader}>
+                    <div style={{ ...styles.insightIcon, background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                      <CheckCircle2 size={18} color="#10b981" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#10b981' }}>Candidate Strengths</h3>
+                      <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Verified competencies & matched keywords</p>
+                    </div>
+                  </div>
+                  <ul style={styles.list}>
+                    {parseJson(analysis.strengths).map((s, i) => (
+                      <li key={i} style={styles.strengthItem}>
+                        <span style={styles.greenDot}></span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#1e1b4b' }}>
-                    AI Bullet Point Optimization
-                  </h3>
-                  <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                    Actionable, metric-driven rewrites tailored to target ATS systems.
-                  </p>
+
+                {/* Skill Gaps */}
+                <div className="glass-panel" style={styles.card}>
+                  <div style={styles.insightHeader}>
+                    <div style={{ ...styles.insightIcon, background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                      <AlertTriangle size={18} color="#f59e0b" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#f59e0b' }}>Identified Skill Gaps</h3>
+                      <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Missing or unmentioned requirements</p>
+                    </div>
+                  </div>
+                  <ul style={styles.list}>
+                    {parseJson(analysis.skillGaps).map((g, i) => (
+                      <li key={i} style={styles.gapItem}>
+                        <span style={styles.amberDot}></span>
+                        <span>{g}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
+            )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.25rem' }}>
-                {parseJson(analysis.suggestions).map((s, i) => (
-                  <div key={i} style={styles.suggestionCard}>
-                    {/* Before */}
-                    <div style={styles.beforeBox}>
-                      <span style={styles.subLabelBefore}>Current Bullet in Resume:</span>
-                      <p style={styles.beforeText}>"{s.original}"</p>
+            {/* TAB 2: SKILLS MATRIX */}
+            {activeTab === 'skills' && (
+              <div className="glass-panel animate-fade-in" style={styles.card}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ffffff', marginBottom: '1.25rem' }}>
+                  Target Role Qualification Matrix
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                  <div>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontSize: '0.95rem', marginBottom: '0.85rem' }}>
+                      <CheckSquare size={16} />
+                      <span>Matched Keywords & Skills</span>
+                    </h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {parseJson(analysis.strengths).map((s, i) => (
+                        <div key={i} style={styles.tagMatched}>
+                          <span>✓ {s}</span>
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    {/* After */}
-                    <div style={styles.afterBox}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={styles.subLabelAfter}>✨ AI Improved Rewrite:</span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(s.improved, i)}
-                          style={styles.copyBtn}
-                          title="Copy to clipboard"
-                        >
-                          {copiedIndex === i ? (
-                            <>
-                              <Check size={14} color="#059669" />
-                              <span style={{ color: '#059669' }}>Copied!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={14} color="#4f46e5" />
-                              <span>Copy Rewrite</span>
-                            </>
-                          )}
-                        </button>
+                  <div>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f59e0b', fontSize: '0.95rem', marginBottom: '0.85rem' }}>
+                      <XSquare size={16} />
+                      <span>Missing / Recommended Keywords</span>
+                    </h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {parseJson(analysis.skillGaps).map((g, i) => (
+                        <div key={i} style={styles.tagMissing}>
+                          <span>+ {g}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: BULLET REWRITES */}
+            {activeTab === 'rewrites' && (
+              <div className="glass-panel animate-fade-in" style={styles.card}>
+                <div style={styles.insightHeader}>
+                  <div style={{ ...styles.insightIcon, background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                    <Lightbulb size={18} color="#818cf8" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#ffffff' }}>
+                      AI Resume Bullet Point Optimization
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                      Actionable, metric-driven rewrites tailored to target ATS systems.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.5rem' }}>
+                  {parseJson(analysis.suggestions).map((s, i) => (
+                    <div key={i} style={styles.suggestionCard}>
+                      <div style={styles.beforeBox}>
+                        <span style={styles.subLabelBefore}>Current Bullet in Resume:</span>
+                        <p style={styles.beforeText}>"{s.original}"</p>
                       </div>
-                      <p style={styles.afterText}>"{s.improved}"</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Target Job Description Card */}
-            <div style={styles.card}>
-              <div style={styles.insightHeader}>
-                <div style={{ ...styles.insightIcon, background: '#f1f5f9' }}>
-                  <Briefcase size={18} color="#475569" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#0f172a' }}>
-                    Target Job Description
-                  </h3>
-                  <p style={{ fontSize: '0.8rem', color: '#64748b' }}>Submitted benchmark requirements</p>
+                      <div style={styles.afterBox}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={styles.subLabelAfter}>✨ AI Improved Rewrite:</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(s.improved, i)}
+                            style={styles.copyBtn}
+                            title="Copy to clipboard"
+                          >
+                            {copiedIndex === i ? (
+                              <>
+                                <Check size={14} color="#10b981" />
+                                <span style={{ color: '#10b981' }}>Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={14} color="#a5b4fc" />
+                                <span>Copy Rewrite</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <p style={styles.afterText}>"{s.improved}"</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div style={styles.jdTextBlock}>
-                {analysis.jobDescription}
+            )}
+
+            {/* TAB 4: JOB DESCRIPTION */}
+            {activeTab === 'jd' && (
+              <div className="glass-panel animate-fade-in" style={styles.card}>
+                <div style={styles.insightHeader}>
+                  <div style={{ ...styles.insightIcon, background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                    <Briefcase size={18} color="#cbd5e1" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#ffffff' }}>
+                      Submitted Job Specification
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Target benchmark for this evaluation</p>
+                  </div>
+                </div>
+                <div style={styles.jdTextBlock}>
+                  {analysis.jobDescription}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </main>
@@ -230,42 +319,34 @@ export default function AnalysisDetailPage() {
 
 const styles = {
   container: {
-    maxWidth: '960px',
-    margin: '1.5rem auto',
+    maxWidth: '1000px',
+    margin: '2rem auto',
     padding: '0 1.5rem',
   },
   backBtn: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.45rem',
+    gap: '0.5rem',
     background: 'none',
     border: 'none',
-    color: '#4f46e5',
+    color: '#818cf8',
     fontWeight: '700',
     fontSize: '0.9rem',
     cursor: 'pointer',
-    marginBottom: '1.25rem',
+    marginBottom: '1.5rem',
     padding: 0,
   },
   title: {
-    fontSize: '1.75rem',
+    fontSize: '2rem',
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.02em',
   },
   card: {
-    background: '#ffffff',
-    borderRadius: '16px',
     padding: '1.75rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03)',
   },
   heroResultCard: {
-    background: '#ffffff',
-    borderRadius: '16px',
-    padding: '2rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
+    padding: '2.25rem',
     display: 'flex',
     alignItems: 'center',
     gap: '2.5rem',
@@ -284,26 +365,54 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.35rem',
-    padding: '0.2rem 0.55rem',
-    background: '#eef2ff',
-    color: '#4f46e5',
+    padding: '0.2rem 0.6rem',
+    background: 'rgba(99, 102, 241, 0.18)',
+    border: '1px solid rgba(99, 102, 241, 0.3)',
+    color: '#a5b4fc',
     borderRadius: '6px',
     fontSize: '0.75rem',
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    marginBottom: '0.5rem',
+    letterSpacing: '0.06em',
+    marginBottom: '0.65rem',
   },
   summaryHeading: {
-    fontSize: '1.25rem',
+    fontSize: '1.35rem',
     fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: '0.45rem',
+    color: '#ffffff',
+    marginBottom: '0.5rem',
   },
   summaryText: {
     fontSize: '0.95rem',
-    color: '#475569',
-    lineHeight: '1.6',
+    color: '#cbd5e1',
+    lineHeight: '1.65',
+  },
+  tabNav: {
+    display: 'flex',
+    gap: '0.5rem',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    paddingBottom: '0.5rem',
+    flexWrap: 'wrap',
+  },
+  tabBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.45rem',
+    background: 'none',
+    border: 'none',
+    padding: '0.65rem 1.15rem',
+    color: '#94a3b8',
+    fontWeight: '600',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    borderRadius: '8px',
+    transition: 'all 0.18s ease',
+  },
+  activeTabBtn: {
+    color: '#ffffff',
+    background: 'rgba(99, 102, 241, 0.2)',
+    border: '1px solid rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 0 15px rgba(99, 102, 241, 0.2)',
   },
   insightsGrid: {
     display: 'grid',
@@ -313,12 +422,12 @@ const styles = {
   insightHeader: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.75rem',
+    gap: '0.85rem',
     marginBottom: '1rem',
   },
   insightIcon: {
-    width: '36px',
-    height: '36px',
+    width: '38px',
+    height: '38px',
     borderRadius: '10px',
     display: 'flex',
     alignItems: 'center',
@@ -329,14 +438,14 @@ const styles = {
     listStyle: 'none',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.75rem',
+    gap: '0.85rem',
   },
   strengthItem: {
     display: 'flex',
     alignItems: 'flex-start',
     gap: '0.65rem',
-    fontSize: '0.9rem',
-    color: '#334155',
+    fontSize: '0.92rem',
+    color: '#e2e8f0',
     lineHeight: '1.5',
   },
   greenDot: {
@@ -346,13 +455,14 @@ const styles = {
     background: '#10b981',
     marginTop: '6px',
     flexShrink: 0,
+    boxShadow: '0 0 8px #10b981',
   },
   gapItem: {
     display: 'flex',
     alignItems: 'flex-start',
     gap: '0.65rem',
-    fontSize: '0.9rem',
-    color: '#334155',
+    fontSize: '0.92rem',
+    color: '#e2e8f0',
     lineHeight: '1.5',
   },
   amberDot: {
@@ -362,75 +472,94 @@ const styles = {
     background: '#f59e0b',
     marginTop: '6px',
     flexShrink: 0,
+    boxShadow: '0 0 8px #f59e0b',
+  },
+  tagMatched: {
+    background: 'rgba(16, 185, 129, 0.15)',
+    border: '1px solid rgba(16, 185, 129, 0.35)',
+    color: '#34d399',
+    padding: '0.35rem 0.8rem',
+    borderRadius: '8px',
+    fontSize: '0.82rem',
+    fontWeight: '600',
+  },
+  tagMissing: {
+    background: 'rgba(245, 158, 11, 0.15)',
+    border: '1px solid rgba(245, 158, 11, 0.35)',
+    color: '#fbbf24',
+    padding: '0.35rem 0.8rem',
+    borderRadius: '8px',
+    fontSize: '0.82rem',
+    fontWeight: '600',
   },
   suggestionCard: {
-    background: '#f8fafc',
+    background: 'rgba(15, 23, 42, 0.6)',
     borderRadius: '12px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
     padding: '1.25rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.85rem',
+    gap: '0.95rem',
   },
   beforeBox: {
-    borderLeft: '3px solid #cbd5e1',
-    paddingLeft: '0.85rem',
+    borderLeft: '3px solid #475569',
+    paddingLeft: '0.95rem',
   },
   subLabelBefore: {
     fontSize: '0.75rem',
     fontWeight: '700',
-    color: '#64748b',
+    color: '#94a3b8',
     textTransform: 'uppercase',
     letterSpacing: '0.04em',
   },
   beforeText: {
     fontSize: '0.9rem',
-    color: '#64748b',
+    color: '#94a3b8',
     fontStyle: 'italic',
-    marginTop: '0.2rem',
+    marginTop: '0.25rem',
     lineHeight: '1.5',
   },
   afterBox: {
     borderLeft: '3px solid #10b981',
-    paddingLeft: '0.85rem',
-    background: '#ffffff',
-    borderRadius: '0 8px 8px 0',
-    padding: '0.85rem',
-    border: '1px solid #e2e8f0',
+    paddingLeft: '0.95rem',
+    background: 'rgba(16, 185, 129, 0.08)',
+    borderRadius: '0 10px 10px 0',
+    padding: '0.95rem',
+    border: '1px solid rgba(16, 185, 129, 0.2)',
   },
   subLabelAfter: {
     fontSize: '0.8rem',
     fontWeight: '700',
-    color: '#047857',
+    color: '#34d399',
   },
   copyBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.35rem',
-    background: '#f1f5f9',
-    border: 'none',
-    padding: '0.25rem 0.6rem',
+    background: 'rgba(99, 102, 241, 0.2)',
+    border: '1px solid rgba(99, 102, 241, 0.4)',
+    padding: '0.25rem 0.65rem',
     borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '0.75rem',
     fontWeight: '600',
-    color: '#4f46e5',
+    color: '#a5b4fc',
   },
   afterText: {
-    fontSize: '0.92rem',
+    fontSize: '0.93rem',
     fontWeight: '500',
-    color: '#064e3b',
-    marginTop: '0.35rem',
-    lineHeight: '1.5',
+    color: '#f0fdf4',
+    marginTop: '0.4rem',
+    lineHeight: '1.6',
   },
   jdTextBlock: {
-    fontSize: '0.92rem',
-    color: '#475569',
-    background: '#f8fafc',
-    padding: '1rem 1.25rem',
-    borderRadius: '10px',
-    border: '1px solid #e2e8f0',
-    lineHeight: '1.6',
+    fontSize: '0.95rem',
+    color: '#cbd5e1',
+    background: 'rgba(15, 23, 42, 0.6)',
+    padding: '1.25rem',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
+    lineHeight: '1.7',
     whiteSpace: 'pre-wrap',
   },
 };
