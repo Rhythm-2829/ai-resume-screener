@@ -5,15 +5,19 @@
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Resilience4j](https://img.shields.io/badge/Resilience4j-Fault%20Tolerance-38B2AC?style=for-the-badge)](https://resilience4j.readme.io/)
+[![Recharts](https://img.shields.io/badge/Recharts-Data%20Viz-22B5BF?style=for-the-badge)](https://recharts.org/)
 [![Groq AI](https://img.shields.io/badge/Groq%20AI-LLaMA%20%2F%20GPT--OSS-f55036?style=for-the-badge)](https://groq.com/)
 [![Railway](https://img.shields.io/badge/Deployed%20on-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app/)
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 
-An end-to-end, production-grade **AI Resume Screener and ATS (Applicant Tracking System) Optimizer**. Job seekers and recruiters can upload PDF resumes, paste job descriptions, and receive real-time, LLM-powered evaluation reports with **ATS match scores**, **strengths assessment**, **missing skill gaps**, and **actionable bullet point rewrites**.
+An enterprise-grade, full-stack **AI Resume Screener and ATS (Applicant Tracking System) Optimization Platform**. Candidates and recruiters can upload PDF resumes, benchmark qualifications against target job specifications, and receive real-time, LLM-powered diagnostics featuring **ATS match scores**, **in-line keyword heatmaps**, **side-by-side version comparisons**, **historical trajectory analytics**, and **quantified bullet point rewrites**.
+
+Built with an enterprise-ready architecture featuring **Resilience4j circuit breaking**, **deterministic SHA-256 Redis caching**, and **zero-penalty quota preservation**.
 
 ---
 
-## 🌐 Live Demos
+## 🌐 Live Deployments
 
 - **Frontend Web Application (Vercel):** [https://ai-resume-screener-beryl.vercel.app](https://ai-resume-screener-beryl.vercel.app)
 - **Backend REST API (Railway):** [https://ai-resume-screener-production-4d74.up.railway.app](https://ai-resume-screener-production-4d74.up.railway.app)
@@ -21,101 +25,146 @@ An end-to-end, production-grade **AI Resume Screener and ATS (Applicant Tracking
 
 ---
 
-## ✨ Key Features
+## ✨ Flagship Capabilities & Features
 
-- **🔐 Stateless JWT Authentication**: Secure user registration and login with BCrypt password hashing, Spring Security 7 filter chains, and protected API routes.
-- **📄 In-Memory PDF Parsing**: High-performance text extraction from uploaded resume documents using **Apache PDFBox 3.x**.
-- **⚡ SHA-256 Content-Hash Redis Caching**: Deterministic caching of LLM evaluation results using Redis. Identical resume and JD comparisons return in under 10ms with 0 Groq API tokens consumed.
-- **🤖 Structured LLM Inference (Groq)**: Strict JSON schema prompting to extract match scores (0–100%), strengths, skill deficiencies, and bullet point rewrites within 4–8 seconds.
-- **🛡️ Daily Rate Limiting & Quotas**: Built-in cost governance and token protection limiting users to **5 AI analyses per day**, backed by automated midnight timestamp resets and live frontend progress meters.
-- **📊 Interactive Candidate Dashboard**: View historical evaluations, search past screenings by keywords, and track candidate ATS improvement over time.
-- **⚡ Bullet Rewriter Studio**: 1-click clipboard copy of improved bullet points directly tailored to keywords in the target job description.
-- **🎨 Modern SaaS Design**: Responsive interface built with React 19, custom design tokens, Lucide icons, and animated SVG radial gauges.
+### 🌟 1. Public Landing Page & Interactive ATS Demo
+- **Recruiter-Grade Showcase**: Clear value proposition addressing ATS rejection patterns, supported by instant CTAs.
+- **Interactive Before / After ATS Preview**: Real-time switch demonstrating the contrast between an unoptimized candidate resume (56% ATS score, flagged missing skills, passive voice) and the optimized version (91% ATS score, quantified achievements, matched competencies).
+- **3-Step Pipeline Breakdown**: Explains text ingestion, LLM semantic benchmarking, and ATS action plan generation.
+- **Production Architecture Cards**: Prominently highlights sub-10ms Redis caching, Resilience4j fault tolerance, and secure rate-limiting.
+
+### 📈 2. Candidate ATS Score Progression Chart (`Recharts`)
+- **Trajectory Analytics**: Interactive `AreaChart` rendering chronological candidate scores across past evaluations.
+- **Target Benchmark Reference**: Dashed 75% emerald reference line representing the competitive recruiter interview threshold.
+- **Trajectory Metric Pill**: Automatically computes net score differential (e.g., `+32% Overall Trajectory`).
+- **Glassmorphic Hover Tooltips**: Displays evaluation run index, timestamp, score color-coding, and job description excerpt.
+
+### ⚖️ 3. Side-by-Side Resume Comparison Mode
+- **Version Differential**: Select any two historical evaluations to compare side-by-side with net ATS score delta (e.g. `+24% ATS Gain`).
+- **Competency Progression**: Displays newly acquired skills ("Newly Matched Competencies in Version B") and resolved gaps ("Gaps Successfully Resolved").
+- **Bullet-by-Bullet Analysis**: Compares original candidate bullet points and AI-suggested rewrites between both resume iterations.
+
+### 🔍 4. Recruiter ATS Keyword Heatmap & Density Inspector
+- **In-Text Highlighting**: Live regex scanner highlights job description requirements directly in the text:
+  - **Matched Competencies**: Highlighted in glowing emerald with `✓` badges.
+  - **Unmatched Deficiencies**: Highlighted in amber/rose with `✕` badges.
+- **Keyword Coverage Progress**: Visual bar calculating exact percentage of matched skills vs. total job requirements.
+- **Filterable Matrix**: Instantly toggle between *All Keywords*, *Matched Only*, and *Missing Gaps*.
+
+### ⏱️ 5. Sequential Architecture-Aware Live Pipeline Trace
+- Replaces generic spinners during the 3–5s Groq LLM inference with an interactive backend execution trace:
+  1. **In-Memory PDF Parsing** (`Apache PDFBox 3.x` <50ms)
+  2. **Redis Content-Hash Verification** (`SHA-256 fingerprint` <10ms)
+  3. **Groq LLM Semantic Matching** (`openai/gpt-oss-120b` real-time inference)
+  4. **Recruiter Diagnostics & Rewrites** (`JSON Schema Synthesis`)
+- Displays live elapsed seconds, pulsing status dots, and progressive completion badges.
+
+### 🛡️ 6. Resilience4j Fault Tolerance & Zero-Penalty Quota
+- **Circuit Breaker (`groqService`)**: Sliding window of 5 calls, 60% failure rate threshold, 30s open duration, and automatic transition to `HALF-OPEN`.
+- **Time Limiter**: 10s timeout preventing hanging requests.
+- **Retry Mechanism**: Exponential retry (2 attempts, 1s backoff) for transient network timeouts.
+- **Sub-10ms Degraded Fallback**: Returns friendly fallback without hanging the user if Groq experiences provider downtime.
+- **Zero-Penalty Quota Preservation**: Failed or degraded analyses do **not** consume the user's daily quota, write to the database, or pollute the Redis cache.
+- **Synchronized UI Countdown**: Live 30-second countdown in the React interface matching the circuit breaker recovery window.
+
+### ⚡ 7. SHA-256 Content-Hash Redis Caching
+- Generates a deterministic `analysis:cache:<sha256(resumeText + jobDescription)>` key.
+- Identical evaluations return in **<10ms** with **0 Groq API tokens** consumed.
+- 7-day TTL automatically evicts stale evaluations.
 
 ---
 
-## 🏗️ Architecture & Data Flow
+## 🏗️ System Architecture & Execution Flow
 
 ```
-[ Candidate / Recruiter ]
-          │
-          ▼
-┌─────────────────────────────────────────────────┐
-│     React 19 + Vite Frontend (Vercel)           │
-│  - JWT Bearer Interceptors                      │
-│  - Interactive Drag-and-Drop Dropzone           │
-│  - Radial SVG ATS Match Gauge                   │
-│  - Daily Quota Tracking Progress Bar            │
-└───────────────────────┬─────────────────────────┘
-                        │ HTTPS / REST (CORS Whitelisted)
-                        ▼
-┌─────────────────────────────────────────────────┐
-│     Spring Boot 4.x Backend (Railway)           │
-│  - JwtAuthFilter (OncePerRequestFilter)         │
-│  - SecurityConfig (BCrypt, Stateless Session)   │
-│  - Apache PDFBox Text Extraction                │
-│  - Rate Limiter & Quota Service (5/day/user)    │
-│  - AnalysisCacheService (SHA-256 Redis Cache)   │
-└───────┬───────────────────┬───────────────────┬─┘
-        │                   │                   │
-        ▼                   ▼                   ▼
-┌──────────────┐    ┌───────────────┐   ┌───────────────┐
-│  PostgreSQL  │    │  Redis Cache  │   │  Groq Cloud   │
-│  (Railway)   │    │  (Railway)    │   │  LLM API      │
-│  - users     │    │  - 7-day TTL  │   │  - Structured │
-│  - resumes   │    │  - <10ms hits │   │    JSON ATS   │
-│  - analyses  │    │  - 0 tokens   │   │    evaluations│
-└──────────────┘    └───────────────┘   └───────────────┘
+                                [ Candidate / Recruiter ]
+                                           │
+                                           ▼
+                 ┌──────────────────────────────────────────────────┐
+                 │        React 19 + Vite Frontend (Vercel)         │
+                 │  - Public Landing Page with Before/After Demo    │
+                 │  - Recharts ATS Trajectory Progression Analytics │
+                 │  - Side-by-Side Resume Comparison Modal          │
+                 │  - In-Line Job Description Keyword Heatmap       │
+                 │  - Live Pipeline Trace with 30s Circuit Timer    │
+                 └─────────────────────────┬────────────────────────┘
+                                           │ HTTPS / REST (CORS Whitelisted)
+                                           ▼
+                 ┌──────────────────────────────────────────────────┐
+                 │       Spring Boot 4.x Backend (Railway)          │
+                 │  - Stateless JWT Filter (OncePerRequestFilter)   │
+                 │  - In-Memory PDF Extraction (Apache PDFBox)      │
+                 │  - Rate Limiter Service (5 evaluations/day/user) │
+                 │  - SHA-256 Content-Addressable Redis Cache       │
+                 └───────┬─────────────────┬──────────────────┬─────┘
+                         │                 │                  │
+         Cache Miss (<10ms)                │                  │
+                         ▼                 ▼                  ▼
+                 ┌──────────────┐   ┌──────────────┐   ┌──────────────────────────┐
+                 │  PostgreSQL  │   │  Redis 7     │   │ Resilience4j Protection  │
+                 │  (Railway)   │   │  (Railway)   │   │ ├─ TimeLimiter (10s)     │
+                 │  - Users     │   │  - SHA-256   │   │ ├─ Retry (2 attempts)    │
+                 │  - Resumes   │   │  - 7-Day TTL │   │ └─ CircuitBreaker (30s)  │
+                 │  - Analyses  │   │  - <10ms     │   └────────────┬─────────────┘
+                 └──────────────┘   └──────────────┘                │
+                                                                    ▼
+                                                       ┌──────────────────────────┐
+                                                       │      Groq Cloud LLM      │
+                                                       │   openai/gpt-oss-120b    │
+                                                       │  - Strict JSON Output    │
+                                                       └──────────────────────────┘
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack Breakdown
 
-### Backend
-- **Framework**: Spring Boot 4.1.1 / Spring Framework 7
-- **Caching**: Spring Data Redis, Redis 7 (Content-addressable SHA-256 hash keys)
-- **Security**: Spring Security 7, JJWT (0.12.6) for stateless token management, BCrypt
-- **ORM / Database**: Spring Data JPA, Hibernate 7, PostgreSQL 16
-- **PDF Engine**: Apache PDFBox 3.0.1
-- **JSON Serialization**: Jackson Databind
-
-### Frontend
-- **Framework**: React 19, React Router DOM 7
-- **Bundler & Tooling**: Vite 8
-- **Networking**: Axios with request/response authorization interceptors
-- **Icons & Styling**: Lucide React, Custom Plus Jakarta Sans design system
-
-### Cloud & AI
-- **LLM Engine**: Groq Cloud API (`openai/gpt-oss-120b` / `llama3-70b-8192`)
-- **Hosting**: Railway (Spring Boot + Managed PostgreSQL + Redis), Vercel (React Frontend)
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Backend** | Spring Boot 4.1.1, Java 17 | Core REST API and business logic |
+| **Security** | Spring Security 7, JJWT 0.12.6, BCrypt | Stateless JWT bearer authentication and password hashing |
+| **Fault Tolerance** | Resilience4j 2.2.0, Spring Boot AOP | Circuit breaker, time limiter, retry, and degraded fallback |
+| **Caching** | Redis 7, Spring Data Redis | Content-addressable SHA-256 hash caching (<10ms hits) |
+| **PDF Extraction** | Apache PDFBox 3.0.1 | In-memory text extraction from multi-page PDF resumes |
+| **Database** | PostgreSQL 16, Spring Data JPA, Hibernate 7 | Relational persistence for users, resumes, and evaluations |
+| **AI / LLM** | Groq Cloud API (`openai/gpt-oss-120b`) | Semantic matching, ATS scoring, and bullet point rewrites |
+| **Frontend** | React 19, React Router DOM 7 | Component-driven user interface |
+| **Data Visualization**| Recharts 3.10.1 | Interactive ATS score progression line/area charts |
+| **Styling & Icons** | Aurora Glass Design System, Lucide React | Dark-slate translucent UI, glowing badges, and micro-interactions |
+| **Build & Bundling**| Vite 8 | Lightning-fast development and optimized production bundling |
+| **Hosting** | Railway & Vercel | Production container deployment and global CDN delivery |
 
 ---
 
 ## 📡 REST API Reference
 
-All protected endpoints require an `Authorization: Bearer <token>` header.
+All protected endpoints require an `Authorization: Bearer <jwt_token>` header.
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Public | Register user, hashes password, returns JWT |
-| `POST` | `/api/auth/login` | Public | Authenticates credentials, returns JWT |
-| `GET` | `/api/health` | Public | Railway health check probe (`{"status":"UP"}`) |
-| `POST` | `/api/resumes/upload` | Authenticated | Multipart upload of PDF resume, parses text |
-| `GET` | `/api/resumes` | Authenticated | List all resumes uploaded by current user |
-| `POST` | `/api/analysis/run` | Authenticated | Evaluates resume against JD with Groq AI (Rate limited) |
-| `GET` | `/api/analysis/quota` | Authenticated | Returns current user's daily quota `{used, limit, remaining}` |
-| `GET` | `/api/analysis/history` | Authenticated | Retrieve user's past ATS evaluations in reverse chron order |
-| `GET` | `/api/analysis/{id}` | Authenticated | Retrieve a single detailed ATS evaluation report |
+| `POST` | `/api/auth/register` | Public | Registers user, hashes password with BCrypt, returns JWT |
+| `POST` | `/api/auth/login` | Public | Authenticates credentials, returns stateless JWT |
+| `GET` | `/api/health` | Public | Railway deployment liveness probe (`{"status":"UP"}`) |
+| `POST` | `/api/resumes/upload` | Authenticated | Multipart upload of PDF resume, parses text in-memory |
+| `GET` | `/api/resumes` | Authenticated | Returns all uploaded resumes for the current user |
+| `POST` | `/api/analysis/run` | Authenticated | Runs Groq LLM ATS evaluation protected by Resilience4j & Redis cache |
+| `GET` | `/api/analysis/quota` | Authenticated | Returns remaining daily quota `{used, limit, remaining}` |
+| `GET` | `/api/analysis/history` | Authenticated | Returns historical evaluations sorted chronologically |
+| `GET` | `/api/analysis/{id}` | Authenticated | Retrieves detailed diagnostics, keyword breakdown, and bullet rewrites |
 
 ---
 
 ## 💻 Local Development Setup
 
 ### Prerequisites
-- **Java 17 or 21** installed (`java -version`)
-- **Node.js 18+** installed (`node -v`)
-- **PostgreSQL** running locally (`localhost:5432`)
+- **Java 17 or 21** (`java -version`)
+- **Maven 3.8+** (`mvn -version`)
+- **Node.js 18+** (`node -v`)
+- **PostgreSQL** running locally on port `5432`
+- **Redis** running locally on port `6379` (optional, can run without Redis in local dev)
+- **Groq API Key** (from [console.groq.com](https://console.groq.com/))
+
+---
 
 ### 1. Clone the Repository
 ```bash
@@ -123,8 +172,10 @@ git clone https://github.com/Rhythm-2829/ai-resume-screener.git
 cd ai-resume-screener
 ```
 
-### 2. Configure Backend
-Create `backend/resumescreener/src/main/resources/application.yml`:
+---
+
+### 2. Configure & Run Backend
+Create or edit `backend/resumescreener/src/main/resources/application.yml`:
 ```yaml
 spring:
   datasource:
@@ -134,14 +185,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
+    show-sql: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 server:
   port: 8080
@@ -149,33 +197,62 @@ server:
 groq:
   api-key: your_groq_api_key
   model: openai/gpt-oss-120b
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      groqService:
+        slidingWindowSize: 5
+        failureRateThreshold: 60
+        waitDurationInOpenState: 30s
+  timelimiter:
+    instances:
+      groqService:
+        timeoutDuration: 10s
+  retry:
+    instances:
+      groqService:
+        maxAttempts: 2
+        waitDuration: 1s
 ```
 
-Run the backend:
+Run the Spring Boot application:
 ```bash
 cd backend/resumescreener
 mvn spring-boot:run
 ```
+The backend will boot up at `http://localhost:8080`.
 
-### 3. Configure Frontend
+---
+
+### 3. Configure & Run Frontend
 Create `frontend/.env.local`:
 ```env
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
-Run the frontend:
+Install dependencies and start the Vite dev server:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+Open **`http://localhost:5173`** in your browser.
 
-Visit **`http://localhost:5173`** in your browser!
+---
+
+## 🧪 Testing
+
+Run backend unit and integration tests (including Mockito circuit-breaker and quota-preservation tests):
+```bash
+cd backend/resumescreener
+mvn test
+```
 
 ---
 
 ## 👤 Author
 
 **Rhythm**  
-- GitHub: [@Rhythm-2829](https://github.com/Rhythm-2829)
-- Project: [AI Resume Screener](https://github.com/Rhythm-2829/ai-resume-screener)
+- GitHub: [@Rhythm-2829](https://github.com/Rhythm-2829)  
+- Repository: [AI Resume Screener](https://github.com/Rhythm-2829/ai-resume-screener)
