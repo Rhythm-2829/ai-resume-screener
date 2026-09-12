@@ -19,6 +19,7 @@ import {
   FileCheck,
   CheckSquare,
   XSquare,
+  Clock,
 } from 'lucide-react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
@@ -35,8 +36,21 @@ export default function AnalyzePage() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState('');
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [countdown, setCountdown] = useState(30);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Circuit breaker 30s countdown effect
+  useEffect(() => {
+    let timer;
+    if (result && result.status === 'DEGRADED') {
+      setCountdown(30);
+      timer = setInterval(() => {
+        setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [result]);
 
   const sampleJDs = [
     {
@@ -117,7 +131,9 @@ export default function AnalyzePage() {
       });
       setResult(res.data);
       fetchQuota();
-      setActiveTab('overview');
+      if (res.data?.status !== 'DEGRADED') {
+        setActiveTab('overview');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'AI analysis encountered an error. Please try again.');
     } finally {
@@ -332,8 +348,88 @@ export default function AnalyzePage() {
           )}
         </div>
 
+        {/* Degraded State: Circuit Breaker Activated */}
+        {result && result.status === 'DEGRADED' && (
+          <div style={{ marginTop: '2.5rem' }} className="animate-fade-in">
+            <div className="glass-panel" style={styles.degradedCard}>
+              <div style={styles.degradedHeader}>
+                <div style={styles.degradedIconWrapper}>
+                  <ShieldAlert size={28} color="#f43f5e" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={styles.degradedBadge}>
+                    <span style={styles.degradedPulseDot} />
+                    <span>Resilience4j Circuit Breaker • OPEN State</span>
+                  </div>
+                  <h3 style={styles.degradedTitle}>AI Analysis Provider Temporarily Unavailable</h3>
+                  <p style={styles.degradedDesc}>
+                    {result.message || 'Upstream Groq LLM API response latency exceeded threshold (10s timeout / >60% failure rate). Circuit breaker tripped open to prevent cascaded failure.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Zero Quota Banner */}
+              <div style={styles.quotaPreservedBox}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <CheckCircle2 size={18} color="#10b981" />
+                  <div>
+                    <span style={{ fontWeight: '700', color: '#10b981', fontSize: '0.88rem' }}>
+                      Daily Quota Protected:
+                    </span>
+                    <span style={{ color: '#cbd5e1', fontSize: '0.88rem', marginLeft: '0.4rem' }}>
+                      No screening credits were deducted from your account ({quota.remaining} of {quota.limit} remaining).
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recovery Timer & Actions */}
+              <div style={styles.degradedFooter}>
+                <div style={styles.countdownBox}>
+                  <Clock size={16} color="#fbbf24" />
+                  <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                    {countdown > 0 ? (
+                      <>
+                        Circuit breaker tests upstream recovery (<strong>HALF-OPEN</strong>) in{' '}
+                        <span style={{ color: '#fbbf24', fontWeight: '700' }}>{countdown}s</span>
+                      </>
+                    ) : (
+                      <span style={{ color: '#34d399', fontWeight: '700' }}>
+                        Circuit Breaker is ready to test recovery. You may retry now!
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setResult(null)}
+                    style={styles.degradedDismissBtn}
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAnalyze}
+                    disabled={loading}
+                    style={{
+                      ...styles.degradedRetryBtn,
+                      opacity: loading ? 0.6 : 1,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+                    <span>{loading ? 'Retrying...' : 'Retry Analysis'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results Studio */}
-        {result && (
+        {result && result.status !== 'DEGRADED' && (
           <div style={{ marginTop: '2.5rem' }} className="animate-fade-in">
             {/* Top Hero Banner */}
             <div className="glass-panel" style={styles.heroResultCard}>
@@ -953,5 +1049,113 @@ const styles = {
     fontSize: '0.95rem',
     cursor: 'pointer',
     boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+  },
+  degradedCard: {
+    padding: '2rem',
+    border: '1px solid rgba(244, 63, 94, 0.3)',
+    background: 'radial-gradient(ellipse at top left, rgba(244, 63, 94, 0.12), rgba(15, 23, 42, 0.85))',
+    boxShadow: '0 0 35px rgba(244, 63, 94, 0.12)',
+    borderRadius: '16px',
+  },
+  degradedHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '1.25rem',
+    marginBottom: '1.5rem',
+  },
+  degradedIconWrapper: {
+    width: '52px',
+    height: '52px',
+    borderRadius: '14px',
+    background: 'rgba(244, 63, 94, 0.15)',
+    border: '1px solid rgba(244, 63, 94, 0.35)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: '0 0 20px rgba(244, 63, 94, 0.25)',
+  },
+  degradedBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    background: 'rgba(244, 63, 94, 0.18)',
+    border: '1px solid rgba(244, 63, 94, 0.35)',
+    color: '#fda4af',
+    fontSize: '0.78rem',
+    fontWeight: '700',
+    letterSpacing: '0.04em',
+    marginBottom: '0.65rem',
+  },
+  degradedPulseDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    background: '#f43f5e',
+    boxShadow: '0 0 8px #f43f5e',
+    display: 'inline-block',
+  },
+  degradedTitle: {
+    fontSize: '1.3rem',
+    fontWeight: '800',
+    color: '#ffffff',
+    marginBottom: '0.45rem',
+  },
+  degradedDesc: {
+    fontSize: '0.92rem',
+    color: '#cbd5e1',
+    lineHeight: '1.6',
+  },
+  quotaPreservedBox: {
+    background: 'rgba(16, 185, 129, 0.08)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    borderRadius: '10px',
+    padding: '0.85rem 1.15rem',
+    marginBottom: '1.5rem',
+  },
+  degradedFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '1rem',
+    paddingTop: '1.25rem',
+    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+  },
+  countdownBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.55rem',
+    background: 'rgba(15, 23, 42, 0.6)',
+    padding: '0.5rem 0.9rem',
+    borderRadius: '8px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+  },
+  degradedDismissBtn: {
+    padding: '0.55rem 1.15rem',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '8px',
+    color: '#94a3b8',
+    fontWeight: '600',
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  },
+  degradedRetryBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.45rem',
+    padding: '0.55rem 1.25rem',
+    background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+    border: 'none',
+    borderRadius: '8px',
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: '0.85rem',
+    boxShadow: '0 0 15px rgba(244, 63, 94, 0.35)',
+    transition: 'all 0.2s ease',
   },
 };

@@ -33,6 +33,10 @@ public class Analysis {
     private String suggestions;
     @Column (columnDefinition = "TEXT")
     private String summary;
+    @Column
+    private String status = "OK";
+    @Column(columnDefinition = "TEXT")
+    private String message;
     @CreationTimestamp 
     @Column(nullable = false,updatable = false)
     private LocalDateTime createdAt;

@@ -12,11 +12,13 @@ import com.rhythm.resumescreener.dto.AnalysisResult;
 import com.rhythm.resumescreener.dto.QuotaResponse;
 import com.rhythm.resumescreener.model.Analysis;
 
+import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service 
 @RequiredArgsConstructor 
 public class AnalysisService {
@@ -51,15 +53,39 @@ public class AnalysisService {
         if (cachedResult.isPresent()) {
             result = cachedResult.get();
         } else {
-            // 2. Cache MISS: invoke Groq LLM and cache result
-            result = groqClient.analyze(resumeText, jobDescription);
-            cacheService.saveToCache(contentHash, result);
+            // 2. Cache MISS: invoke Groq LLM through CircuitBreaker/TimeLimiter/Retry wrapper
+            try {
+                result = groqClient.analyzeAsync(resumeText, jobDescription).get();
+            } catch (Exception e) {
+                log.error("Error executing Groq LLM call via circuit breaker: {}", e.getMessage());
+                result = new AnalysisResult();
+                result.setStatus("DEGRADED");
+                result.setMessage("AI analysis temporarily unavailable due to provider latency. Retry in 30 seconds.");
+            }
+
+            // Only cache successful OK results
+            if (!"DEGRADED".equals(result.getStatus())) {
+                cacheService.saveToCache(contentHash, result);
+            }
+        }
+
+        // 3. If degraded response, do not persist to database or increment daily quota!
+        if ("DEGRADED".equals(result.getStatus())) {
+            log.warn("Returning degraded response for user {}. Daily quota preserved.", userId);
+            Analysis degradedAnalysis = new Analysis();
+            degradedAnalysis.setUserId(userId);
+            degradedAnalysis.setResumeId(resumeId);
+            degradedAnalysis.setJobDescription(jobDescription);
+            degradedAnalysis.setStatus("DEGRADED");
+            degradedAnalysis.setMessage(result.getMessage());
+            return degradedAnalysis;
         }
 
         Analysis analysis = new Analysis();
         analysis.setUserId(userId);
         analysis.setResumeId(resumeId);
         analysis.setJobDescription(jobDescription);
+        analysis.setStatus("OK");
         analysis.setMatchScore(result.getMatchScore());
         analysis.setStrengths(objectMapper.writeValueAsString(result.getStrengths()));
         analysis.setSkillGaps(objectMapper.writeValueAsString(result.getSkillGaps()));

@@ -90,6 +90,20 @@
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
+		<!-- Resilience4j Circuit Breaker -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<!-- Required for @CircuitBreaker, @TimeLimiter, @Retry AOP annotations -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+			<version>3.4.3</version>
+		</dependency>
+
 		<!-- DevTools (auto-restart on save) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
