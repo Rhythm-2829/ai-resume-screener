@@ -12,14 +12,22 @@ import {
   Loader2,
   FolderPlus,
   Zap,
+  Layers,
+  CheckSquare,
+  Square,
+  X,
 } from 'lucide-react';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
+import ScoreTrendChart from '../components/ScoreTrendChart';
+import CompareModal from '../components/CompareModal';
 
 export default function DashboardPage() {
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCompareIds, setSelectedCompareIds] = useState([]);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +37,22 @@ export default function DashboardPage() {
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleSelectCompare = (e, id) => {
+    e.stopPropagation();
+    setSelectedCompareIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      }
+      if (prev.length < 2) {
+        return [...prev, id];
+      }
+      return [prev[1], id];
+    });
+  };
+
+  const analysisA = analyses.find((a) => a.id === selectedCompareIds[0]);
+  const analysisB = analyses.find((a) => a.id === selectedCompareIds[1]);
 
   // Compute metrics
   const totalCount = analyses.length;
@@ -110,6 +134,42 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Recharts ATS Score History Progression Chart */}
+        {totalCount > 0 && <ScoreTrendChart analyses={analyses} />}
+
+        {/* Floating Comparison Action Bar */}
+        {selectedCompareIds.length > 0 && (
+          <div className="glass-panel animate-fade-in" style={styles.compareBanner}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <Layers size={18} color="#818cf8" />
+              <span style={{ fontSize: '0.9rem', color: '#f8fafc', fontWeight: '700' }}>
+                {selectedCompareIds.length} of 2 evaluations selected for comparison
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button
+                style={styles.clearCompareBtn}
+                onClick={() => setSelectedCompareIds([])}
+              >
+                Clear
+              </button>
+              <button
+                style={{
+                  ...styles.launchCompareBtn,
+                  opacity: selectedCompareIds.length === 2 ? 1 : 0.6,
+                  cursor: selectedCompareIds.length === 2 ? 'pointer' : 'not-allowed',
+                }}
+                disabled={selectedCompareIds.length !== 2}
+                onClick={() => setIsCompareOpen(true)}
+              >
+                <Sparkles size={15} />
+                <span>{selectedCompareIds.length === 2 ? 'Launch Side-by-Side Comparison' : 'Select 1 More to Compare'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Search Bar */}
         <div style={styles.searchBarWrapper}>
           <div style={styles.searchBox}>
@@ -154,11 +214,16 @@ export default function DashboardPage() {
           <div style={styles.historyList}>
             {filteredAnalyses.map((item) => {
               const badge = getScoreBadgeConfig(item.matchScore);
+              const isSelected = selectedCompareIds.includes(item.id);
               return (
                 <div
                   key={item.id}
                   className="glass-panel"
-                  style={styles.historyCard}
+                  style={{
+                    ...styles.historyCard,
+                    borderColor: isSelected ? 'rgba(99, 102, 241, 0.6)' : 'rgba(255, 255, 255, 0.08)',
+                    boxShadow: isSelected ? '0 0 20px rgba(99, 102, 241, 0.2)' : 'none',
+                  }}
                   onClick={() => navigate(`/analysis/${item.id}`)}
                 >
                   <div style={styles.cardLeft}>
@@ -203,6 +268,20 @@ export default function DashboardPage() {
                   </div>
 
                   <div style={styles.cardRight}>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleSelectCompare(e, item.id)}
+                      style={{
+                        ...styles.compareBtn,
+                        background: isSelected ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255, 255, 255, 0.04)',
+                        borderColor: isSelected ? 'rgba(99, 102, 241, 0.6)' : 'rgba(255, 255, 255, 0.1)',
+                        color: isSelected ? '#a5b4fc' : '#94a3b8',
+                      }}
+                      title="Select for side-by-side comparison"
+                    >
+                      {isSelected ? <CheckSquare size={14} color="#818cf8" /> : <Square size={14} />}
+                      <span>{isSelected ? 'Selected' : 'Compare'}</span>
+                    </button>
                     <button style={styles.viewDetailBtn}>
                       <span>Report</span>
                       <ArrowRight size={14} />
@@ -213,6 +292,14 @@ export default function DashboardPage() {
             })}
           </div>
         )}
+
+        {/* Side-by-Side Comparison Modal Mount */}
+        <CompareModal
+          isOpen={isCompareOpen}
+          onClose={() => setIsCompareOpen(false)}
+          analysisA={analysisA}
+          analysisB={analysisB}
+        />
       </main>
     </div>
   );
@@ -405,5 +492,57 @@ const styles = {
     justifyContent: 'center',
     marginBottom: '1.25rem',
     boxShadow: '0 0 25px rgba(99, 102, 241, 0.3)',
+  },
+  compareBanner: {
+    position: 'sticky',
+    top: '4.75rem',
+    zIndex: 40,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0.85rem 1.25rem',
+    borderRadius: '12px',
+    background: 'rgba(15, 23, 42, 0.95)',
+    backdropFilter: 'blur(16px)',
+    border: '1px solid rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2)',
+    marginBottom: '1.5rem',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+  },
+  clearCompareBtn: {
+    padding: '0.45rem 0.85rem',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    color: '#94a3b8',
+    borderRadius: '8px',
+    fontSize: '0.82rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  launchCompareBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.45rem',
+    padding: '0.5rem 1.15rem',
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+    border: 'none',
+    borderRadius: '8px',
+    color: '#ffffff',
+    fontSize: '0.85rem',
+    fontWeight: '700',
+    boxShadow: '0 0 15px rgba(99, 102, 241, 0.35)',
+  },
+  compareBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    padding: '0.45rem 0.85rem',
+    border: '1px solid',
+    borderRadius: '8px',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.18s ease',
   },
 };

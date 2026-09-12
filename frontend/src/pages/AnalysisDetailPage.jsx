@@ -19,6 +19,7 @@ import {
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import ScoreBadge from '../components/ScoreBadge';
+import KeywordHeatmap from '../components/KeywordHeatmap';
 
 export default function AnalysisDetailPage() {
   const { id } = useParams();
@@ -132,6 +133,16 @@ export default function AnalysisDetailPage() {
               <button
                 style={{
                   ...styles.tabBtn,
+                  ...(activeTab === 'heatmap' ? styles.activeTabBtn : {}),
+                }}
+                onClick={() => setActiveTab('heatmap')}
+              >
+                <FileSearch size={16} />
+                <span>Keyword Heatmap</span>
+              </button>
+              <button
+                style={{
+                  ...styles.tabBtn,
                   ...(activeTab === 'rewrites' ? styles.activeTabBtn : {}),
                 }}
                 onClick={() => setActiveTab('rewrites')}
@@ -233,6 +244,17 @@ export default function AnalysisDetailPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* TAB: KEYWORD HEATMAP */}
+            {activeTab === 'heatmap' && (
+              <div className="animate-fade-in">
+                <KeywordHeatmap
+                  jobDescription={analysis.jobDescription}
+                  strengths={parseJson(analysis.strengths)}
+                  skillGaps={parseJson(analysis.skillGaps)}
+                />
               </div>
             )}
 
