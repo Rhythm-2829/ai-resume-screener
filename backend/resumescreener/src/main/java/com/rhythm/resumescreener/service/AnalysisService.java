@@ -15,6 +15,7 @@ import com.rhythm.resumescreener.model.Analysis;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service 
 @RequiredArgsConstructor 
@@ -26,6 +27,7 @@ public class AnalysisService {
     private final UserRepository userRepository;
     private final GroqClient groqClient;
     private final ObjectMapper objectMapper;
+    private final AnalysisCacheService cacheService;
 
     public Analysis runAnalysis(Long resumeId, String jobDescription, Long userId) throws Exception{
         User user = userRepository.findById(userId)
@@ -37,11 +39,22 @@ public class AnalysisService {
             throw new RuntimeException("Daily quota of " + DAILY_LIMIT + " analyses reached. Your limit resets at midnight!");
         }
 
-
         String resumeText = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new RuntimeException("Resume not found for ID: " + resumeId))
                 .getExtractedText();
-        AnalysisResult result = groqClient.analyze(resumeText, jobDescription);
+
+        // 1. Check Redis cache first using SHA-256 content hash
+        String contentHash = cacheService.computeContentHash(resumeText, jobDescription);
+        Optional<AnalysisResult> cachedResult = cacheService.getCached(contentHash);
+
+        AnalysisResult result;
+        if (cachedResult.isPresent()) {
+            result = cachedResult.get();
+        } else {
+            // 2. Cache MISS: invoke Groq LLM and cache result
+            result = groqClient.analyze(resumeText, jobDescription);
+            cacheService.saveToCache(contentHash, result);
+        }
 
         Analysis analysis = new Analysis();
         analysis.setUserId(userId);

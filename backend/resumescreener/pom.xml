@@ -84,6 +84,12 @@
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
+		<!-- Redis Starter -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
 		<!-- DevTools (auto-restart on save) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

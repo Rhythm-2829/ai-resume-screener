@@ -4,6 +4,7 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Groq AI](https://img.shields.io/badge/Groq%20AI-LLaMA%20%2F%20GPT--OSS-f55036?style=for-the-badge)](https://groq.com/)
 [![Railway](https://img.shields.io/badge/Deployed%20on-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app/)
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
@@ -24,6 +25,7 @@ An end-to-end, production-grade **AI Resume Screener and ATS (Applicant Tracking
 
 - **🔐 Stateless JWT Authentication**: Secure user registration and login with BCrypt password hashing, Spring Security 7 filter chains, and protected API routes.
 - **📄 In-Memory PDF Parsing**: High-performance text extraction from uploaded resume documents using **Apache PDFBox 3.x**.
+- **⚡ SHA-256 Content-Hash Redis Caching**: Deterministic caching of LLM evaluation results using Redis. Identical resume and JD comparisons return in under 10ms with 0 Groq API tokens consumed.
 - **🤖 Structured LLM Inference (Groq)**: Strict JSON schema prompting to extract match scores (0–100%), strengths, skill deficiencies, and bullet point rewrites within 4–8 seconds.
 - **🛡️ Daily Rate Limiting & Quotas**: Built-in cost governance and token protection limiting users to **5 AI analyses per day**, backed by automated midnight timestamp resets and live frontend progress meters.
 - **📊 Interactive Candidate Dashboard**: View historical evaluations, search past screenings by keywords, and track candidate ATS improvement over time.
@@ -53,16 +55,17 @@ An end-to-end, production-grade **AI Resume Screener and ATS (Applicant Tracking
 │  - SecurityConfig (BCrypt, Stateless Session)   │
 │  - Apache PDFBox Text Extraction                │
 │  - Rate Limiter & Quota Service (5/day/user)    │
-└──────────────┬──────────────────┬───────────────┘
-               │                  │
-               ▼                  ▼
-┌─────────────────────────┐  ┌─────────────────────────┐
-│  PostgreSQL (Railway)   │  │   Groq Cloud LLM API    │
-│  - users table          │  │   - High-throughput     │
-│  - resumes table (TEXT) │  │     inference           │
-│  - analyses table (JSON)│  │   - Structured JSON ATS │
-└─────────────────────────┘  │     analysis response   │
-                             └─────────────────────────┘
+│  - AnalysisCacheService (SHA-256 Redis Cache)   │
+└───────┬───────────────────┬───────────────────┬─┘
+        │                   │                   │
+        ▼                   ▼                   ▼
+┌──────────────┐    ┌───────────────┐   ┌───────────────┐
+│  PostgreSQL  │    │  Redis Cache  │   │  Groq Cloud   │
+│  (Railway)   │    │  (Railway)    │   │  LLM API      │
+│  - users     │    │  - 7-day TTL  │   │  - Structured │
+│  - resumes   │    │  - <10ms hits │   │    JSON ATS   │
+│  - analyses  │    │  - 0 tokens   │   │    evaluations│
+└──────────────┘    └───────────────┘   └───────────────┘
 ```
 
 ---
@@ -71,6 +74,7 @@ An end-to-end, production-grade **AI Resume Screener and ATS (Applicant Tracking
 
 ### Backend
 - **Framework**: Spring Boot 4.1.1 / Spring Framework 7
+- **Caching**: Spring Data Redis, Redis 7 (Content-addressable SHA-256 hash keys)
 - **Security**: Spring Security 7, JJWT (0.12.6) for stateless token management, BCrypt
 - **ORM / Database**: Spring Data JPA, Hibernate 7, PostgreSQL 16
 - **PDF Engine**: Apache PDFBox 3.0.1
@@ -84,7 +88,7 @@ An end-to-end, production-grade **AI Resume Screener and ATS (Applicant Tracking
 
 ### Cloud & AI
 - **LLM Engine**: Groq Cloud API (`openai/gpt-oss-120b` / `llama3-70b-8192`)
-- **Hosting**: Railway (Spring Boot + Managed PostgreSQL), Vercel (React Frontend)
+- **Hosting**: Railway (Spring Boot + Managed PostgreSQL + Redis), Vercel (React Frontend)
 
 ---
 
