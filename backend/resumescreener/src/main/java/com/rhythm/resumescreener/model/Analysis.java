@@ -37,6 +37,8 @@ public class Analysis {
     private String status = "OK";
     @Column(columnDefinition = "TEXT")
     private String message;
+    @jakarta.persistence.Transient
+    private boolean cached = false;
     @CreationTimestamp 
     @Column(nullable = false,updatable = false)
     private LocalDateTime createdAt;

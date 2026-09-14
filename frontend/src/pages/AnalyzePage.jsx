@@ -25,6 +25,7 @@ import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import ScoreBadge from '../components/ScoreBadge';
 import KeywordHeatmap from '../components/KeywordHeatmap';
+import AnalysisLoader from '../components/AnalysisLoader';
 
 export default function AnalyzePage() {
   const [resumes, setResumes] = useState([]);
@@ -34,6 +35,8 @@ export default function AnalyzePage() {
   const [result, setResult] = useState(null);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'skills' | 'rewrites'
   const [loading, setLoading] = useState(false);
+  const [isCacheHit, setIsCacheHit] = useState(false);
+  const [showDoneFlash, setShowDoneFlash] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState('');
   const [copiedIndex, setCopiedIndex] = useState(null);
@@ -64,32 +67,6 @@ export default function AnalyzePage() {
     },
   ];
 
-  const architectureSteps = [
-    {
-      title: 'In-Memory PDF Parsing',
-      sub: 'Apache PDFBox extracted text structures in-memory (<50ms)',
-      tech: 'Apache PDFBox 3.x',
-    },
-    {
-      title: 'Redis Content-Hash Verification',
-      sub: 'SHA-256 fingerprint checked for identical prior analysis (<10ms)',
-      tech: 'Redis 7 Cache',
-    },
-    {
-      title: 'Groq LLM Semantic Matching',
-      sub: 'Benchmarking qualifications against job requirements in real-time...',
-      tech: 'openai/gpt-oss-120b',
-    },
-    {
-      title: 'Recruiter Diagnostics & Rewrites',
-      sub: 'Synthesizing match score, keyword heatmap, and ATS bullet rewrites...',
-      tech: 'JSON Schema Output',
-    },
-  ];
-
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
   const fetchQuota = () => {
     api.get('/api/analysis/quota')
       .then((res) => setQuota(res.data))
@@ -107,29 +84,6 @@ export default function AnalyzePage() {
     });
     fetchQuota();
   }, [location.state]);
-
-  // Sequential architecture-aware timeline progression
-  useEffect(() => {
-    let elapsedTimer;
-    if (loading) {
-      setActiveStepIndex(0);
-      setElapsedSeconds(0);
-      elapsedTimer = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-
-      const t1 = setTimeout(() => setActiveStepIndex(1), 600);
-      const t2 = setTimeout(() => setActiveStepIndex(2), 1500);
-      const t3 = setTimeout(() => setActiveStepIndex(3), 3200);
-
-      return () => {
-        clearInterval(elapsedTimer);
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    }
-  }, [loading]);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
@@ -152,21 +106,53 @@ export default function AnalyzePage() {
 
     setError('');
     setResult(null);
+    setShowDoneFlash(false);
+    setIsCacheHit(false);
     setLoading(true);
+
+    const startTime = Date.now();
 
     try {
       const res = await api.post('/api/analysis/run', {
         resumeId: Number(resumeId),
         jobDescription: jobDescription.trim(),
       });
-      setResult(res.data);
       fetchQuota();
-      if (res.data?.status !== 'DEGRADED') {
-        setActiveTab('overview');
+
+      const elapsed = Date.now() - startTime;
+      const isHit = res.data?.cached === true || elapsed < 1200;
+
+      if (res.data?.status === 'DEGRADED') {
+        setLoading(false);
+        setResult(res.data);
+        return;
+      }
+
+      if (isHit) {
+        setIsCacheHit(true);
+        // On cache hit, let AnalysisLoader display the 3 hit steps in under 1 second,
+        // then reveal completion flash and result smoothly
+        setTimeout(() => {
+          setLoading(false);
+          setShowDoneFlash(true);
+          setTimeout(() => {
+            setShowDoneFlash(false);
+            setResult(res.data);
+            setActiveTab('overview');
+          }, 600);
+        }, 950);
+      } else {
+        // Cache miss: brief done flash then reveal report
+        setLoading(false);
+        setShowDoneFlash(true);
+        setTimeout(() => {
+          setShowDoneFlash(false);
+          setResult(res.data);
+          setActiveTab('overview');
+        }, 600);
       }
     } catch (err) {
       setError(err.response?.data?.error || 'AI analysis encountered an error. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -360,88 +346,18 @@ export default function AnalyzePage() {
             </button>
           </form>
 
-          {/* Sequential Architecture-Aware AI Loading Timeline */}
+          {/* Animated AI Loading State */}
           {loading && (
-            <div className="glass-panel animate-fade-in" style={styles.archLoadingBox}>
-              <div style={styles.archLoadingHeader}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <div style={styles.archPulseDot} />
-                  <div>
-                    <h4 style={{ fontSize: '0.98rem', fontWeight: '800', color: '#ffffff' }}>
-                      AI Inference & Caching Pipeline Active
-                    </h4>
-                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.15rem' }}>
-                      Execution trace across Spring Boot backend services ({elapsedSeconds}s elapsed)
-                    </p>
-                  </div>
-                </div>
-                <div style={styles.archLivePill}>
-                  <Cpu size={14} color="#818cf8" className="animate-spin" />
-                  <span>LIVE TRACE</span>
-                </div>
-              </div>
+            <AnalysisLoader
+              isCacheHit={isCacheHit}
+              onComplete={() => setLoading(false)}
+            />
+          )}
 
-              <div style={styles.timelineList}>
-                {architectureSteps.map((step, idx) => {
-                  const isCompleted = activeStepIndex > idx;
-                  const isActive = activeStepIndex === idx;
-                  const isPending = activeStepIndex < idx;
-
-                  return (
-                    <div
-                      key={idx}
-                      style={{
-                        ...styles.timelineItem,
-                        opacity: isPending ? 0.38 : 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          ...styles.timelineIconWrapper,
-                          background: isCompleted
-                            ? 'rgba(16, 185, 129, 0.18)'
-                            : isActive
-                            ? 'rgba(99, 102, 241, 0.25)'
-                            : 'rgba(255, 255, 255, 0.04)',
-                          borderColor: isCompleted
-                            ? 'rgba(16, 185, 129, 0.5)'
-                            : isActive
-                            ? '#818cf8'
-                            : 'rgba(255, 255, 255, 0.1)',
-                        }}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 size={16} color="#10b981" />
-                        ) : isActive ? (
-                          <Loader2 size={16} color="#818cf8" className="animate-spin" />
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>
-                            0{idx + 1}
-                          </span>
-                        )}
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                          <span
-                            style={{
-                              fontSize: '0.92rem',
-                              fontWeight: '700',
-                              color: isCompleted ? '#34d399' : isActive ? '#ffffff' : '#94a3b8',
-                            }}
-                          >
-                            {step.title}
-                          </span>
-                          <span style={styles.techBadge}>{step.tech}</span>
-                        </div>
-                        <p style={{ fontSize: '0.8rem', color: isPending ? '#64748b' : '#cbd5e1', marginTop: '0.2rem' }}>
-                          {step.sub}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          {/* Completion Flash */}
+          {showDoneFlash && (
+            <div className="done-flash">
+              ✓ Analysis complete — loading your report
             </div>
           )}
         </div>

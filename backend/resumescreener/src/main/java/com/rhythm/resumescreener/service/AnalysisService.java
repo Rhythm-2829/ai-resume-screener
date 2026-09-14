@@ -92,7 +92,9 @@ public class AnalysisService {
         analysis.setSuggestions(objectMapper.writeValueAsString(result.getSuggestions()));
         analysis.setSummary(result.getSummary());
 
+        boolean isCacheHit = cachedResult.isPresent();
         Analysis savedAnalysis =  analysisRepository.save(analysis);
+        savedAnalysis.setCached(isCacheHit);
 
         user.setDailyAnalysisCount(user.getDailyAnalysisCount()+1);
         user.setLastAnalysisDate(LocalDateTime.now());
